@@ -1,23 +1,23 @@
 // Function to fetch live tracking info and update the dashboard
-function updateLiveTracking() {
-  console.log('Fetching live tracking data...');
-  fetch('/api/live_tracking')
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok: ' + response.statusText);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Live tracking data received:', data);
-      updateDashboardUI(data);
-    })
-    .catch(error => {
-      console.error('Error fetching live tracking data:', error);
-      // Still try to update UI with default standby mode on error
-      updateDashboardUI({system_status: false});
-    });
-}
+// function updateLiveTracking() {
+//   console.log('Fetching live tracking data...');
+//   fetch('/api/live_tracking')
+//     .then(response => {
+//       if (!response.ok) {
+//         throw new Error('Network response was not ok: ' + response.statusText);
+//       }
+//       return response.json();
+//     })
+//     .then(data => {
+//       console.log('Live tracking data received:', data);
+//       updateDashboardUI(data);
+//     })
+//     .catch(error => {
+//       console.error('Error fetching live tracking data:', error);
+//       // Still try to update UI with default standby mode on error
+//       updateDashboardUI({system_status: false});
+//     });
+// }
 
 // Function to update the dashboard UI based on tracking data
 function updateDashboardUI(data) {
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Set up polling for live updates - more frequent polling (1 second)
-  updateLiveTracking(); // Initial update
-  setInterval(updateLiveTracking, 1000); // Check every second for changes
+  // updateLiveTracking(); // Initial update
+  // setInterval(updateLiveTracking, 1000); // Check every second for changes
 });
   

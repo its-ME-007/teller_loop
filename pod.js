@@ -66,24 +66,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   
     // Fetch and update live tracking info
-    function updateLiveTracking() {
-        console.log('Fetching live tracking data...');
-        fetch('/api/live_tracking')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Live tracking data received:', data);
-                updateDashboardUI(data);
-            })
-            .catch(error => {
-                console.error('Error fetching live tracking data:', error);
-                updateDashboardUI({system_status: false});
-            });
-    }
+    // function updateLiveTracking() {
+    //     console.log('Fetching live tracking data...');
+    //     fetch('/api/live_tracking')
+    //         .then(response => {
+    //             if (!response.ok) {
+    //                 throw new Error('Network response was not ok: ' + response.statusText);
+    //             }
+    //             return response.json();
+    //         })
+    //         .then(data => {
+    //             console.log('Live tracking data received:', data);
+    //             updateDashboardUI(data);
+    //         })
+    //         .catch(error => {
+    //             console.error('Error fetching live tracking data:', error);
+    //             updateDashboardUI({system_status: false});
+    //         });
+    // }
   
     // Update dashboard UI based on tracking data
     function updateDashboardUI(data) {
@@ -385,7 +385,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
   
         // Initial update and periodic polling
-        updateLiveTracking();
-        setInterval(updateLiveTracking, 1000);
+        // updateLiveTracking();
+        // setInterval(updateLiveTracking, 1000);
     });
   });

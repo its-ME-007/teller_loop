@@ -10,7 +10,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/maintainancepage.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/cleardatapage.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/keypasspage.css') }}">
-
+    <script>
+        const STATION_ID = {{ page_id }};
+    </script>      
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
     <!-- Load Socket.IO directly from CDN with integrity hash -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
