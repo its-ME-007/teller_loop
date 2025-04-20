@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Priority Toggle & Slide Dispatch</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        /* Toggle Button */
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .toggle-btn {
+            width: 200px;
+            height: 40px;
+            background: blue;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-btn .toggle-circle {
+            position: absolute;
+            left: 5px;
+            width: 50%;
+            height: 80%;
+            background: white;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn span {
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            position: absolute;
+        }
+
+        .toggle-btn .low { left: 0; }
+        .toggle-btn .high { right: 0; opacity: 0.5; }
+
+        .toggle-btn.active {
+            background: darkblue;
+        }
+
+        .toggle-btn.active .toggle-circle {
+            left: 50%;
+        }
+
+        .toggle-btn.active .low {
+            opacity: 0.5;
+        }
+
+        .toggle-btn.active .high {
+            opacity: 1;
+        }
+
+        /* Slide-to-Dispatch Button */
+        .slide-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .slide-btn {
+            width: 250px;
+            height: 40px;
+            background: green;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .slide-btn .slide-icon {
+            width: 40px;
+            height: 80%;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            left: 5px;
+            color: green;
+            font-weight: bold;
+            transition: left 0.3s;
+        }
+
+        .slide-btn span {
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Priority Toggle Button -->
+    <div class="toggle-container">
+        <div class="toggle-btn" id="priorityToggle">
+            <div class="toggle-circle"></div>
+            <span class="low">Priority - Low</span>
+            <span class="high">Priority - High</span>
+        </div>
+    </div>
+
+    <!-- Slide-to-Dispatch Button -->
+    <div class="slide-container">
+        <div class="slide-btn" id="slideToDispatch">
+            <div class="slide-icon">»»</div>
+            <span>Slide to dispatch</span>
+        </div>
+    </div>
+
+    <script>
+        // Priority Toggle Button
+        document.getElementById("priorityToggle").addEventListener("click", function() {
+            this.classList.toggle("active");
+        });
+
+        // Slide-to-Dispatch Button
+        let isSliding = false;
+        const slideButton = document.getElementById("slideToDispatch");
+        const slideIcon = slideButton.querySelector(".slide-icon");
+
+        slideButton.addEventListener("mousedown", startSlide);
+        slideButton.addEventListener("touchstart", startSlide);
+
+        function startSlide(event) {
+            isSliding = true;
+            let startX = event.type === "mousedown" ? event.clientX : event.touches[0].clientX;
+            
+            function moveSlide(e) {
+                if (!isSliding) return;
+                let currentX = e.type === "mousemove" ? e.clientX : e.touches[0].clientX;
+                let diff = Math.min(190, Math.max(0, currentX - startX));
+
+                slideIcon.style.left = `${5 + diff}px`;
+            }
+
+            function endSlide() {
+                isSliding = false;
+                if (parseInt(slideIcon.style.left) > 140) {
+                    slideIcon.style.left = "190px";
+                    alert("Dispatched!");
+
+                    // Reset the slider after 1 second
+                    setTimeout(() => {
+                        slideIcon.style.transition = "left 0.5s ease"; // Add smooth transition
+                        slideIcon.style.left = "5px";
+                        setTimeout(() => {
+                            slideIcon.style.transition = ""; // Remove transition for manual dragging
+                        }, 500);
+                    }, 1000);
+                } else {
+                    slideIcon.style.left = "5px";
+                }
+                document.removeEventListener("mousemove", moveSlide);
+                document.removeEventListener("mouseup", endSlide);
+                document.removeEventListener("touchmove", moveSlide);
+                document.removeEventListener("touchend", endSlide);
+            }
+
+            document.addEventListener("mousemove", moveSlide);
+            document.addEventListener("mouseup", endSlide);
+            document.addEventListener("touchmove", moveSlide);
+            document.addEventListener("touchend", endSlide);
+        }
+    </script>
+
+</body>
+</html>
