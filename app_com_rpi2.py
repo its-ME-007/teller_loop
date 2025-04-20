@@ -386,8 +386,7 @@ def handle_dispatch_completed(data):
             socketio.emit('status', status, room=str(i))
             
 def map_sensor_data(data):
-    """Map between inching_cs.py sensor format and database format"""
-    if 'S1' in data:  # inching_cs.py format
+    if 'S1' in data: 
         return {
             'sensor_1': data.get('S1', False),
             'sensor_2': data.get('S2', False),
@@ -398,47 +397,39 @@ def map_sensor_data(data):
             'sensor_7': data.get('P3', False),
             'sensor_8': data.get('P4', False)
         }
-    # Standard format already used
     return data
 
 @socketio.on('join')
 def handle_join(data):
-    # Handle both formats of join data
-    if isinstance(data, dict) and 'username' in data:
-        # Original station join format
-        username = data['username']
-        station_id = int(username.split('-')[-1])
+
+    sid = request.sid
+
+    if isinstance(data, dict) and 'station_id' in data:
+        station_id = int(data['station_id'])
+
+        # Create a unique room name as string
         join_room(str(station_id))
+        logger.info(f"Station {station_id} joined room {station_id}.")
 
-        # Check if the station is allowed
-        if username in ALLOWED_IPS and ALLOWED_IPS[username] == ip:
-            # Place the station into its own room (room name same as username)
-            join_room(username)
-            logger.info(f"{username} with IP {ip} joined room {username}.")
-        else:
-            logger.warning(f"Unauthorized join attempt: {username} with IP {ip}")
-            disconnect()
-            return
+        # Store connection mappings
+        connected_stations[station_id] = sid
+        station_sids[station_id] = sid
+        sid_stations[sid] = station_id
 
-        # Store station connection data
-        connected_stations[username] = ip
-        station_sids[username] = sid
-        sid_stations[sid] = username
-
-        # Send the updated station list to all clients
+        # Notify others
         emit('update_connected_stations', list(connected_stations.keys()), broadcast=True)
-        emit('station_joined', {'node': username, 'ip': ip}, broadcast=True)
-        
-        # Publish station online status to MQTT
+        emit('station_joined', {'station_id': station_id}, broadcast=True)
+
+        # Publish to MQTT
         status_message = json.dumps({
-            'station': username,
+            'station_id': station_id,
             'status': 'online',
-            'ip': ip,
             'timestamp': time.time()
         })
-        mqtt.publish(f"{mqtt_status_topic_pub}{username.split('-')[-1]}", status_message)
+        mqtt.publish(f"{mqtt_status_topic_pub}{station_id}", status_message)
+
     else:
-        # New page_id based join format
+        # Handle fallback: maybe this was a page (dashboard client)
         page_id = str(data)
         join_room(page_id)
         logger.info(f"Joined room (page ID): {page_id}")
@@ -610,31 +601,23 @@ def cleanup_inactive_stations():
 def handle_disconnect():
     print("Client disconnected")
     sid = request.sid
-    username = sid_stations.get(sid)
-    if username:
-        # Leave the room associated with this station
-        leave_room(username)
-        # Clean up tracking data
-        if username in connected_stations:
-            del connected_stations[username]
-        if username in station_sids:
-            del station_sids[username]
-        if sid in sid_stations:
-            del sid_stations[sid]
-        if username in station_heartbeats:
-            del station_heartbeats[username]
-        # Notify clients about disconnection
-        emit('station_left', {'node': username}, broadcast=True)
+    station_id = sid_stations.get(sid)
+
+    if station_id:
+        leave_room(str(station_id))
+        connected_stations.pop(station_id, None)
+        station_sids.pop(station_id, None)
+        sid_stations.pop(sid, None)
+
+        emit('station_left', {'station_id': station_id}, broadcast=True)
         emit('update_connected_stations', list(connected_stations.keys()), broadcast=True)
-        
-        # Publish station offline status to MQTT
+
         status_message = json.dumps({
-            'station': username,
+            'station_id': station_id,
             'status': 'offline',
             'timestamp': time.time()
         })
-        station_num = username.split('-')[-1]
-        mqtt.publish(f"{mqtt_status_topic_pub}{station_num}", status_message)
+        mqtt.publish(f"{mqtt_status_topic_pub}{station_id}", status_message)
 
 logs = [
     {"task_id": 5266, "from": 5, "to": 6, "date": "25/1/25", "time": "4:15"},
