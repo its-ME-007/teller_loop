@@ -400,10 +400,21 @@ def handle_connect():
 
 @socketio.on('dispatch')
 def handle_dispatch(data):
-    from_id = int(data['from'])
-    to_id = int(data['to'])
+    global dispatch_in_progress
+    if dispatch_in_progress:
+        print("Dispatch denied: already in progress")
+        emit('dispatch_denied', {'reason': 'Another dispatch is in progress'}, to=request.sid)
+        return
+    dispatch_in_progress = True
+    from_id = int(data.get('from'))
+    to_id = int(data.get('to'))
+   
     priority = data.get('priority', 'low')
+    # Broadcast the dashboard trigger to everyone except the sender
+    emit('station_dispatch_started', {'from': from_id}, broadcast=True, include_self=False)
     
+# Rest of your dispatch logic...
+
     logger.info(f"Dispatch request: from {from_id} to {to_id} with {priority} priority")
     
     # Create dispatch data
@@ -424,6 +435,8 @@ def handle_dispatch(data):
     
     # Publish to MQTT
     dispatch_request = json.dumps(dispatch_data)
+    print(f"[DEBUG] MQTT Publish to: {mqtt_priority_topic}{from_id}/{to_id}")
+
     mqtt.publish(f"{mqtt_priority_topic}{from_id}/{to_id}", dispatch_request)
     
     # Process next dispatch if none is in progress
@@ -665,6 +678,7 @@ def handle_page(page_id):
 @app.route('/api/get_client_ip')
 def get_client_ip():
     return jsonify({'ip': request.remote_addr})
+
 
 @app.route('/api/check_ip', methods=['GET'])
 def check_ip():
