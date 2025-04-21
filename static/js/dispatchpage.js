@@ -49,13 +49,9 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   socket.on('system_status_changed', function (data) {
-    dispatchAllowed = !data.status;
-    updateDispatchUI();
-    if (!data.status && !dispatchAllowed) {
-      dispatchAllowed = true;
-      updateDispatchUI();
-    }
-  });
+  dispatchAllowed = !data.status;
+  updateDispatchUI(data.current_dispatch);
+});
 
   socket.on('dispatch_event', function (data) {
     if (data.from == currentStationNumber) {
@@ -141,7 +137,7 @@ function checkDispatchPermission() {
     });
 }
 
-function updateDispatchUI() {
+function updateDispatchUI(currentDispatch = null) {
   const slideButton = document.getElementById("slideToDispatch");
   const priorityToggle = document.getElementById("priorityToggle");
   const destinationButtons = document.querySelectorAll(".dp-destination");
@@ -150,13 +146,21 @@ function updateDispatchUI() {
     slideButton.classList.add('disabled');
     priorityToggle.classList.add('disabled');
     destinationButtons.forEach(btn => btn.classList.add('disabled'));
-    if (!document.querySelector('.dispatch-warning')) {
-      const warn = document.createElement('div');
+
+    let message = 'Dispatch not available: Another dispatch is in progress';
+    if (currentDispatch && currentDispatch.from && currentDispatch.to) {
+      message += ` (From station ${currentDispatch.from} to ${currentDispatch.to}, Priority: ${currentDispatch.priority})`;
+    }
+
+    let warn = document.querySelector('.dispatch-warning');
+    if (!warn) {
+      warn = document.createElement('div');
       warn.className = 'dispatch-warning';
-      warn.textContent = 'Dispatch not available: Another dispatch is in progress';
-      warn.style.color = 'red';
       document.querySelector('.dispatch-info')?.prepend(warn);
     }
+    warn.textContent = message;
+    warn.style.color = 'red';
+
   } else {
     slideButton.classList.remove('disabled');
     priorityToggle.classList.remove('disabled');

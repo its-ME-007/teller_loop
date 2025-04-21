@@ -12,12 +12,26 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/keypasspage.css') }}">
     <script>
         const STATION_ID = {{ page_id }};
-    </script>      
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
-    <!-- Load Socket.IO directly from CDN with integrity hash -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
 </head>
 <body>
+    <!-- 🚚 Dispatch Status Banner -->
+    <div id="dispatch-banner" style="
+      display: none;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: #ffc107;
+      color: black;
+      text-align: center;
+      padding: 8px 0;
+      font-weight: bold;
+      z-index: 9999;
+    ">
+      Dispatch in progress...
+    </div>
     <div class="container">
         <aside class="sidebar">
             <div class="logo">
