@@ -12,7 +12,7 @@ const keypass_container = document.getElementById('keypass-container-id');
 const keypass_ActionIcon = document.getElementById('KeypassActionIcon');
 
 
-let state="standb"
+let state="standby"
 function toggleTrackingInfo() {
     console.log("Check..")
     if (state=="standby") {
@@ -83,34 +83,59 @@ function toggleScreensOnClick(buttonid) {
 
   }
 
-  function hideallelements(){
-    db_content.style.display = 'none';
-    db_request.style.display = 'none';
-    trackingInfoBox.style.display = 'none';
-    dp_container.style.display = 'none';
-    history_container.style.display = 'none';
-    maintainance_container.style.display = 'none';
-    cleardata_container.style.display = 'none';
-    keypass_container.style.display = 'none';
-    document.getElementById("kp-left-panel-cleardata-id").style.display = 'none';
-    document.getElementById("kp-left-panel-maintainance-id").style.display = 'none';
-
-    
+  function hideallelements() {
+    // Do NOT hide dashboard elements — they are toggled in showdashboardpage
+    if (db_content) db_content.style.display = 'none';
+    if (db_request) db_request.style.display = 'none';
+    if (trackingInfoBox) trackingInfoBox.style.display = 'none';
+    if (dp_container) dp_container.style.display = 'none';
+    if (history_container) history_container.style.display = 'none';
+    if (maintainance_container) maintainance_container.style.display = 'none';
+    if (cleardata_container) cleardata_container.style.display = 'none';
+    if (keypass_container) keypass_container.style.display = 'none';
+  
+    // Clear left panel additions if any
+    const clearLeftPanel = document.getElementById("kp-left-panel-cleardata-id");
+    if (clearLeftPanel) clearLeftPanel.style.display = 'none';
+  
+    const maintainLeftPanel = document.getElementById("kp-left-panel-maintainance-id");
+    if (maintainLeftPanel) maintainLeftPanel.style.display = 'none';
   }
+  
 
   window.showdashboardpage = function () 
   { toggleTrackingInfo(); 
-    db_content.style.display = 'flex'; 
-    db_request.style.display = 'flex'; };
+    hideallelements(); 
+    if (db_content) db_content.style.display = 'flex';
+    if (db_request) db_request.style.display = 'flex';
+    if (trackingInfoBox) trackingInfoBox.style.display = 'block';
+    db_content.offsetHeight;  // Trigger reflow
+    db_request.offsetHeight;
+
+    // Re-apply layout classes if needed
+    db_content.classList.remove('hidden');
+    db_request.classList.remove('hidden');
+    fetch('/api/live_tracking')
+    .then(response => response.json())
+    .then(data => {
+      // your update UI logic
+      console.log("Live Tracking Data:", data);
+      updateLiveTrackingUI(data);  // if this exists
+    })
+    .catch(error => console.error("Error fetching live tracking:", error)); };
+
   function showdispatchpage(){
+    hideallelements();
     dp_container.style.display = 'flex';
   }
 
   function showhistorypage(){
+    hideallelements();
     history_container.style.display = 'flex';
   }
 
   function showkeypasspage(){
+    hideallelements();
     if (getActiveButton()=="Maintainance-Btn"){
       document.getElementById("kp-left-panel-maintainance-id").style.display = 'flex';
       keypass_container.style.display = 'flex';
@@ -122,11 +147,12 @@ function toggleScreensOnClick(buttonid) {
   }
   
   function showmaintainancepage(){
+    hideallelements();
     maintainance_container.style.display = 'flex';
   }
 
   function showcleardatapage(){
-    
+    hideallelements();
     cleardata_container.style.display = 'flex';
   }
 
@@ -137,5 +163,38 @@ function toggleScreensOnClick(buttonid) {
   function shownotifications(){
 
   }
- 
+  function updateLiveTrackingUI(data) {
+    const trackingBox = document.getElementById('tracking-info-id');
+    if (!trackingBox) {
+      console.warn("tracking-info-id box not found");
+      return;
+    }
+  
+    // Clear old content
+    trackingBox.innerHTML = '';
+    if (data.system_status && data.system_status.toLowerCase() !== "standby") {
+      state = "dispatching";
+    } else {
+      state = "standby";
+    }
+    
+    // Show standby message if no active dispatch
+    if (data.sender === null || data.receiver === null) {
+      trackingBox.innerText = `System status: ${data.system_status.toUpperCase()} (No active dispatch)`;
+    } else {
+      // Construct live dispatch display
+      const info = `
+        Task ID: ${data.task_id}<br>
+        Sender: Station ${data.sender}<br>
+        Receiver: Station ${data.receiver}<br>
+        Status: ${data.system_status.toUpperCase()}
+      `;
+      trackingBox.innerHTML = info;
+    }
+  
+    // Keep it visible
+    trackingBox.style.display = 'block';
+  }
+  
+  
 
