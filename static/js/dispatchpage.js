@@ -97,30 +97,37 @@ document.addEventListener("DOMContentLoaded", function () {
       filteredDest.forEach(dest => {
         const div = document.createElement("div");
         div.classList.add("dp-destination");
-        div.onclick = () => {
-          if (!dispatchAllowed) return;
-          document.querySelectorAll(".dp-destination").forEach(el => el.classList.remove("active"));
-          div.classList.add("active");
-          dp_showtostation.textContent = dest.displayId;
-          dp_showtostation.style.border = "3.5px solid #32B34B";
-          dp_station_number.textContent = dest.displayId;
-          dp_station_number.style.color = "#32B34B";
-          dp_station_number.style.border = "2px solid #32B34B";
-          dp_station_name.textContent = dest.name;
-          selectedDestination = dest;
-        };
-
-        const innerDiv = document.createElement("div");
-        innerDiv.classList.add("dp-content");
-        const numberDiv = document.createElement("div");
-        numberDiv.classList.add("dp-number");
-        numberDiv.textContent = dest.displayId;
-        const textSpan = document.createElement("span");
-        textSpan.classList.add("dp-stationname");
-        textSpan.textContent = dest.name;
-        innerDiv.append(numberDiv, textSpan);
-        div.appendChild(innerDiv);
-        destinationList.appendChild(div);
+        const stationNumber = parseInt(dest.name.split('-').pop());
+        if (!isNaN(stationNumber) && stationNumber > 0) {
+          dest.id = stationNumber; // Ensure dest.id is always a valid number
+          
+          const div = document.createElement("div");
+          div.classList.add("dp-destination");
+          div.onclick = () => {
+            if (!dispatchAllowed) return;
+            document.querySelectorAll(".dp-destination").forEach(el => el.classList.remove("active"));
+            div.classList.add("active");
+            dp_showtostation.textContent = dest.displayId;
+            dp_showtostation.style.border = "3.5px solid #32B34B";
+            dp_station_number.textContent = dest.displayId;
+            dp_station_number.style.color = "#32B34B";
+            dp_station_number.style.border = "2px solid #32B34B";
+            dp_station_name.textContent = dest.name;
+            selectedDestination = dest;
+          };
+        
+          const innerDiv = document.createElement("div");
+          innerDiv.classList.add("dp-content");
+          const numberDiv = document.createElement("div");
+          numberDiv.classList.add("dp-number");
+          numberDiv.textContent = dest.displayId;
+          const textSpan = document.createElement("span");
+          textSpan.classList.add("dp-stationname");
+          textSpan.textContent = dest.name;
+          innerDiv.append(numberDiv, textSpan);
+          div.appendChild(innerDiv);
+          destinationList.appendChild(div);
+        }
       });
 
       checkDispatchPermission();
