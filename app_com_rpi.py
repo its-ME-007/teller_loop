@@ -62,7 +62,8 @@ mqtt_topic_base = 'PTS/'
 mqtt_sensor_data_topic = mqtt_topic_base + 'SENSORDATA/#'
 mqtt_dispatch_topic = mqtt_topic_base + 'DISPATCH/#'
 mqtt_status_topic = mqtt_topic_base + 'STATUS/#'
-mqtt_priority_topic = mqtt_topic_base + 'PRIORITY/#'
+mqtt_priority_topic = mqtt_topic_base + 'PRIORITY/'
+mqtt_priority_sub_topic = mqtt_topic_base + 'PRIORITY/#'
 mqtt_ack_topic = mqtt_topic_base + 'ACK/#'
 mqtt_script_topic = mqtt_topic_base + 'SCRIPT/#'  # New topic for script execution
 
@@ -83,6 +84,10 @@ app.config['SECRET_KEY'] = 'secret!'
 app.config['SYSTEM_STATUS'] = False
 
 mqtt = Mqtt(app)
+print("🔁 MQTT object created:", mqtt)
+print("🔁 Underlying paho client:", mqtt.client)
+
+
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 DATABASE = 'lan_monitoring.db'
@@ -90,12 +95,15 @@ DATABASE = 'lan_monitoring.db'
 # Subscribe to MQTT topics
 @mqtt.on_connect()
 def handle_mqtt_connect(client, userdata, flags, rc):
+    print(f"✅ MQTT connected with result code {rc}")
     logger.info(f"Connected to MQTT broker with result code: {rc}")
+
+    
     # Subscribe to all our topics
     mqtt.subscribe(mqtt_sensor_data_topic, 1)
     mqtt.subscribe(mqtt_dispatch_topic, 1)
     mqtt.subscribe(mqtt_status_topic, 1)
-    mqtt.subscribe(mqtt_priority_topic, 1)
+    mqtt.subscribe(mqtt_priority_sub_topic, 1)
     mqtt.subscribe(mqtt_ack_topic, 1)
     mqtt.subscribe(mqtt_script_topic, 1)  # Subscribe to script execution topic
     logger.info(f"Subscribed to topics: {mqtt_sensor_data_topic}, {mqtt_dispatch_topic}, {mqtt_status_topic}, {mqtt_priority_topic}, {mqtt_ack_topic}, {mqtt_script_topic}")
@@ -401,49 +409,71 @@ def handle_connect():
 @socketio.on('dispatch')
 def handle_dispatch(data):
     global dispatch_in_progress
+
     if dispatch_in_progress:
         print("Dispatch denied: already in progress")
         emit('dispatch_denied', {'reason': 'Another dispatch is in progress'}, to=request.sid)
         return
-    dispatch_in_progress = True
-    from_id = int(data.get('from'))
-    to_id = int(data.get('to'))
-   
+
+    # Step 1: Read raw values
+    from_raw = data.get('from')
+    to_raw = data.get('to')
+    print(f" Received from: {from_raw}, to: {to_raw}")
+
+    # Step 2: Validate and convert to integers
+    try:
+        from_id = int(from_raw)
+        to_id = int(to_raw)
+    except (ValueError, TypeError):
+        print("Invalid station IDs — must be valid integers")
+        emit('dispatch_denied', {'reason': 'Invalid station ID'}, to=request.sid)
+        return
+
+    # Step 3: Build valid topic
+    # Strip any trailing slash from mqtt_priority_topic
+    base_topic = mqtt_priority_topic.rstrip('/')
+    topic = f"{base_topic}/{from_id}/{to_id}"
+    print(f"[DEBUG] Final MQTT topic: {topic}")
+
+    # Step 4: Set dispatch in progress and emit
     priority = data.get('priority', 'low')
-    # Broadcast the dashboard trigger to everyone except the sender
+    dispatch_in_progress = True
     emit('station_dispatch_started', {'from': from_id}, broadcast=True, include_self=False)
-    
-# Rest of your dispatch logic...
 
     logger.info(f"Dispatch request: from {from_id} to {to_id} with {priority} priority")
-    
-    # Create dispatch data
+
+    # Step 5: Add to queue
     dispatch_data = {
         'from': from_id,
         'to': to_id,
         'priority': priority,
         'timestamp': time.time()
     }
-    
-    # Add to appropriate queue
+
     if priority.lower() == 'high':
         high_priority_queue.append(dispatch_data)
         logger.info(f"Added to high priority queue. Queue length: {len(high_priority_queue)}")
     else:
         normal_queue.append(dispatch_data)
         logger.info(f"Added to normal queue. Queue length: {len(normal_queue)}")
-    
-    # Publish to MQTT
-    dispatch_request = json.dumps(dispatch_data)
-    print(f"[DEBUG] MQTT Publish to: {mqtt_priority_topic}{from_id}/{to_id}")
 
-    mqtt.publish(f"{mqtt_priority_topic}{from_id}/{to_id}", dispatch_request)
-    
-    # Process next dispatch if none is in progress
+    # Step 6: Publish
+    dispatch_request = json.dumps(dispatch_data)
+    dispatch_request = json.dumps(dispatch_data)
+
+    if mqtt.client.is_connected():
+        mqtt.publish(topic, dispatch_request)
+        print("✅ MQTT publish succeeded")
+    else:
+        print("❌ MQTT client not connected — skipping publish")
+        emit('dispatch_denied', {'reason': 'MQTT not connected'}, to=request.sid)
+        return
+
+
+    # Step 7: Post-dispatch handling
     if not dispatch_in_progress:
         process_next_dispatch()
     else:
-        # Inform the client that the dispatch is queued
         emit('dispatch_queued', {
             'from': from_id,
             'to': to_id,
