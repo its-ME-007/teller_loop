@@ -242,13 +242,15 @@ document.addEventListener('DOMContentLoaded', function() {
       requestedCard.style.display = 'none';
       activeRequest = null;
     });
-    socket.on('station_dispatch_started', function(data)
-     { console.log("Dispatch triggered by station", data.from);
-
+    socket.on('station_dispatch_started', function(data) {
+      console.log("Dispatch triggered by station", data.from);
+      if (typeof showdashboardpage === 'function') showdashboardpage();
+    });
+    
     socket.on('connect', function () {
       console.log('Dashboard connected to Socket.IO server');
-      if (typeof showdashboardpage === 'function') { showdashboardpage(); } });
     });
+    
 
     socket.on('connect_error', function (error) {
       console.error('Socket.IO connection error:', error);
