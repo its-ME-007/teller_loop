@@ -49,13 +49,9 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   socket.on('system_status_changed', function (data) {
-    dispatchAllowed = !data.status;
-    updateDispatchUI();
-    if (!data.status && !dispatchAllowed) {
-      dispatchAllowed = true;
-      updateDispatchUI();
-    }
-  });
+  dispatchAllowed = !data.status;
+  updateDispatchUI(data.current_dispatch);
+});
 
   socket.on('dispatch_event', function (data) {
     if (data.from == currentStationNumber) {
@@ -101,30 +97,37 @@ document.addEventListener("DOMContentLoaded", function () {
       filteredDest.forEach(dest => {
         const div = document.createElement("div");
         div.classList.add("dp-destination");
-        div.onclick = () => {
-          if (!dispatchAllowed) return;
-          document.querySelectorAll(".dp-destination").forEach(el => el.classList.remove("active"));
-          div.classList.add("active");
-          dp_showtostation.textContent = dest.displayId;
-          dp_showtostation.style.border = "3.5px solid #32B34B";
-          dp_station_number.textContent = dest.displayId;
-          dp_station_number.style.color = "#32B34B";
-          dp_station_number.style.border = "2px solid #32B34B";
-          dp_station_name.textContent = dest.name;
-          selectedDestination = dest;
-        };
-
-        const innerDiv = document.createElement("div");
-        innerDiv.classList.add("dp-content");
-        const numberDiv = document.createElement("div");
-        numberDiv.classList.add("dp-number");
-        numberDiv.textContent = dest.displayId;
-        const textSpan = document.createElement("span");
-        textSpan.classList.add("dp-stationname");
-        textSpan.textContent = dest.name;
-        innerDiv.append(numberDiv, textSpan);
-        div.appendChild(innerDiv);
-        destinationList.appendChild(div);
+        const stationNumber = parseInt(dest.name.split('-').pop());
+        if (!isNaN(stationNumber) && stationNumber > 0) {
+          dest.id = stationNumber; // Ensure dest.id is always a valid number
+          
+          const div = document.createElement("div");
+          div.classList.add("dp-destination");
+          div.onclick = () => {
+            if (!dispatchAllowed) return;
+            document.querySelectorAll(".dp-destination").forEach(el => el.classList.remove("active"));
+            div.classList.add("active");
+            dp_showtostation.textContent = dest.displayId;
+            dp_showtostation.style.border = "3.5px solid #32B34B";
+            dp_station_number.textContent = dest.displayId;
+            dp_station_number.style.color = "#32B34B";
+            dp_station_number.style.border = "2px solid #32B34B";
+            dp_station_name.textContent = dest.name;
+            selectedDestination = dest;
+          };
+        
+          const innerDiv = document.createElement("div");
+          innerDiv.classList.add("dp-content");
+          const numberDiv = document.createElement("div");
+          numberDiv.classList.add("dp-number");
+          numberDiv.textContent = dest.displayId;
+          const textSpan = document.createElement("span");
+          textSpan.classList.add("dp-stationname");
+          textSpan.textContent = dest.name;
+          innerDiv.append(numberDiv, textSpan);
+          div.appendChild(innerDiv);
+          destinationList.appendChild(div);
+        }
       });
 
       checkDispatchPermission();
@@ -141,7 +144,7 @@ function checkDispatchPermission() {
     });
 }
 
-function updateDispatchUI() {
+function updateDispatchUI(currentDispatch = null) {
   const slideButton = document.getElementById("slideToDispatch");
   const priorityToggle = document.getElementById("priorityToggle");
   const destinationButtons = document.querySelectorAll(".dp-destination");
@@ -150,13 +153,21 @@ function updateDispatchUI() {
     slideButton.classList.add('disabled');
     priorityToggle.classList.add('disabled');
     destinationButtons.forEach(btn => btn.classList.add('disabled'));
-    if (!document.querySelector('.dispatch-warning')) {
-      const warn = document.createElement('div');
+
+    let message = 'Dispatch not available: Another dispatch is in progress';
+    if (currentDispatch && currentDispatch.from && currentDispatch.to) {
+      message += ` (From station ${currentDispatch.from} to ${currentDispatch.to}, Priority: ${currentDispatch.priority})`;
+    }
+
+    let warn = document.querySelector('.dispatch-warning');
+    if (!warn) {
+      warn = document.createElement('div');
       warn.className = 'dispatch-warning';
-      warn.textContent = 'Dispatch not available: Another dispatch is in progress';
-      warn.style.color = 'red';
       document.querySelector('.dispatch-info')?.prepend(warn);
     }
+    warn.textContent = message;
+    warn.style.color = 'red';
+
   } else {
     slideButton.classList.remove('disabled');
     priorityToggle.classList.remove('disabled');

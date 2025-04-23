@@ -244,6 +244,15 @@ def execute_dispatch(dispatch_data):
     else:
         logger.error(f"Could not find station names for IDs: from={from_id}, to={to_id}")
     
+    # Emit system status changed with current dispatch info
+    socketio.emit('system_status_changed', {
+        'status': True,
+        'current_dispatch': {
+            'from': from_id,
+            'to': to_id,
+            'priority': priority
+        }
+    })
     # Update status for all stations
     for i in range(1, 5):  # Assuming stations 1 to 4
         if i == from_id:
@@ -369,6 +378,11 @@ def handle_dispatch_completed(data):
             )
             db.commit()
         
+                # Notify UI to re-enable dispatch
+        socketio.emit('system_status_changed', {
+            'status': False,
+            'current_dispatch': None
+        })
         # Reset dispatch state
         dispatch_in_progress = False
         current_dispatch = None
@@ -433,6 +447,12 @@ def handle_join(data):
         page_id = str(data)
         join_room(page_id)
         logger.info(f"Joined room (page ID): {page_id}")
+
+    if dispatch_in_progress and current_dispatch:
+        emit('system_status_changed', {
+            'status': True,
+            'current_dispatch': current_dispatch
+        }, room=sid)
 
 @socketio.on('hello_packet')
 def handle_hello_packet(data):
