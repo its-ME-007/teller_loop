@@ -43,8 +43,9 @@ STATION_IDS = {
 
 # MQTT Configuration
 mqtt_broker_ip = "test.mosquitto.org"
-mqtt_username = None
-mqtt_password = None
+mqtt_broker_port = 1883
+mqtt_username = "oora"
+mqtt_password = "oora"
 
 # MQTT Topics
 mqtt_topic_base = 'PTS/'
@@ -233,7 +234,6 @@ def execute_dispatch(dispatch_data):
     else:
         logger.error(f"Could not find station names for IDs: from={from_id}, to={to_id}")
     
-    # Emit system status changed with current dispatch info
     socketio.emit('system_status_changed', {
         'status': True,
         'current_dispatch': {
@@ -242,7 +242,6 @@ def execute_dispatch(dispatch_data):
             'priority': priority
         }
     })
-    # Update status for all stations
     for i in range(1, 5):  # Assuming stations 1 to 4
         if i == from_id:
             status = {'status': 'sending', 'destination': to_id, 'task_id': task_id}
@@ -256,10 +255,7 @@ def execute_dispatch(dispatch_data):
         
         status_message = json.dumps(msg)
         mqtt.publish(f"{mqtt_status_topic_pub_1}{i}", status_message)
-        #mqtt.publish(f"{mqtt_status_topic_pub}{i}", status_message)
-        
-        
-        # Also emit via Socket.IO for browser clients
+ 
         socketio.emit('status', status, room=str(i))
 
 @mqtt.on_message()
@@ -703,6 +699,38 @@ def get_network_architecture():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/live_tracking')
+def get_live_tracking():
+    try:
+        db = get_db()
+        # Get the most recent entry from history table
+        latest_entry = db.execute(
+            'SELECT * FROM history ORDER BY timestamp DESC LIMIT 1'
+        ).fetchone()
+       
+        if (latest_entry):
+            return jsonify({
+                'system_status': app.config['SYSTEM_STATUS'],
+                'sender': latest_entry['sender'],
+                'receiver': latest_entry['receiver'],
+                'task_id': latest_entry['task_id']
+            })
+        else:
+            return jsonify({
+                'system_status': app.config['SYSTEM_STATUS'],
+                'sender': None,
+                'receiver': None,
+                'task_id': None
+            })
+    except Exception as e:
+        logger.error(f"Error fetching live tracking data: {e}")
+        return jsonify({
+            'system_status': app.config['SYSTEM_STATUS'],
+            'sender': None,
+            'receiver': None,
+            'task_id': None
+        })
+    
 @app.route('/api/get_sensor_data/<station_id>')
 def get_sensor_data(station_id):
     db = get_db()
@@ -884,10 +912,8 @@ def check_dispatch_allowed():
 def get_current_station_by_id(station_id):
     return jsonify({'station_id': station_id})
 
-# SocketIO events for empty pod requests
 @socketio.on('request_empty_pod')
 def handle_empty_pod_request(data):
-    # Broadcast empty pod request to all other stations
     requester_station = data.get('requesterStation', 'Unknown')
     emit('empty_pod_request', data, broadcast=True, include_self=False)
     request_message = json.dumps(data)
