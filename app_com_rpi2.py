@@ -33,14 +33,6 @@ high_priority_queue = deque()
 dispatch_in_progress = False
 current_dispatch = None
 
-# Define allowed stations (name: IP)
-ALLOWED_IPS = {
-    'passthrough-station-1': '192.168.90.8',
-    'passthrough-station-2': '192.168.90.3',
-    'passthrough-station-3': '192.168.90.6',
-    'passthrough-station-4': '192.168.43.200'
-}
-
 # Map station names to their IDs for easier reference
 STATION_IDS = {
     'passthrough-station-1': 1,
@@ -48,9 +40,6 @@ STATION_IDS = {
     'passthrough-station-3': 3,
     'passthrough-station-4': 4
 }
-
-# Reverse mapping for IP to station name lookup
-IP_TO_STATION = {ip: name for name, ip in ALLOWED_IPS.items()}
 
 # MQTT Configuration
 mqtt_broker_ip = "test.mosquitto.org"
@@ -656,17 +645,6 @@ def home():
 def handle_page(page_id):
     return render_template('Tellerloop.html', page_id=page_id)
 
-@app.route('/api/get_client_ip')
-def get_client_ip():
-    return jsonify({'ip': request.remote_addr})
-
-@app.route('/api/check_ip', methods=['GET'])
-def check_ip():
-    user_ip = request.remote_addr
-    # Check if the client IP is one of the allowed IPs (values in ALLOWED_IPS)
-    is_allowed = user_ip in ALLOWED_IPS.values()
-    return jsonify({'is_allowed': is_allowed})
-
 @app.route('/api/network_architecture')
 def get_network_architecture():
     try:
@@ -806,13 +784,10 @@ def drop_all_tables():
 @app.route('/api/clear_history', methods=['DELETE'])
 def clear_history():
     try:
-        # Drop all existing tables
         drop_all_tables()
         
-        # Reinitialize the database
         init_db()
         
-        # Find the latest network architecture JSON
         directory = os.path.dirname(__file__)
         json_files = glob.glob(os.path.join(directory, "network_architecture*.json"))
         
@@ -820,17 +795,14 @@ def clear_history():
             logger.warning("No network architecture files found")
             return jsonify({'error': 'No architecture files found'}), 404
         
-        # Get the most recently modified JSON file
         latest_file = max(json_files, key=os.path.getmtime)
         
-        # Load the JSON data
         with open(latest_file, 'r') as json_file:
             data = json.load(json_file)
         
         logger.info(f"Loaded network architecture from {latest_file}")
         logger.info(f"Loaded JSON data keys: {data.keys()}")
         
-        # Process components from the JSON file
         components = data.get('components', [])
         logger.info(f"Found {len(components)} components in JSON file")
         
@@ -842,7 +814,6 @@ def clear_history():
             
             logger.info(f"Processing component: type={comp_type}, id={comp_id}")
             
-            # Create tables only for specific component types
             if comp_type in ['passthrough-station', 'bottom-loading-station']:
                 if comp_id:
                     table_name = f"component_{comp_id}"
