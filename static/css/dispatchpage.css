@@ -1,0 +1,333 @@
+.dispatch-container {
+    display: flex;
+    width:600px;
+    height:480px;
+}
+
+.dp-destination-list {
+    width: 275px;
+    max-height: 400px;
+    overflow-y: scroll; /* Always show scrollbar */
+    border-radius: 10px;
+    background: rgb(255, 255, 255);
+    position: fixed;
+    font-size: 14px;
+    transform: translate(21px, 68px);
+    color: white;
+
+    /* Scrollbar Styling */
+    scrollbar-width: thin; /* Firefox: thin scrollbar */
+    scrollbar-color: lightgray transparent; /* Firefox: color customization */
+}
+
+/* WebKit (Chrome, Safari, Edge) */
+.dp-destination-list::-webkit-scrollbar {
+    width: 8px; /* Thin scrollbar */
+    height:400px;
+}
+
+/* Scrollbar track */
+.dp-destination-list::-webkit-scrollbar-track {
+    background: transparent; /* No background */
+    border-radius: 10px; /* Rounded corners */
+}
+
+/* Scrollbar thumb */
+.dp-destination-list::-webkit-scrollbar-thumb {
+    background-color: lightgray; /* Thumb color */
+    border-radius: 10px; /* Rounded corners */
+    border: 2px solid transparent; /* Padding effect */
+}
+
+/* Hide scrollbar arrows */
+.dp-destination-list::-webkit-scrollbar-button {
+    display: none;
+}
+
+
+
+.circle-station{
+    width: 53px;
+    height: 53px;
+    background: black;
+    color: #32B34B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 47px;
+    border: 3.5px solid #32B34B;
+    position: fixed;
+    transform: translate(49px, 73px);
+}
+
+.dp-destination {
+    display:flex;
+    align-items: center;
+    width:240px;
+    height:40px;
+    margin: 4px 0;
+    background: black;
+    border: 2px solid white;
+    border-radius: 34px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 15px;
+}
+
+
+.dp-selecttxt{
+    width:120px;
+    height:20px;
+    color:black;
+    position:fixed;
+    font-size: 14px;
+    transform: translate(21px, 42px); 
+}
+
+.dp-content {
+    display: flex;
+    align-items: center;
+    gap: 1px; /* Space between number and text */
+    width:100%;
+}
+
+.dp-number {
+    width: 27px;
+    height: 27px;
+    background: black;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 18px;
+    margin-left: 7px;
+    border: 2px solid #ffffff;
+}
+.dp-destination.active .dp-number {
+    color: #32B34B;
+    border: 2px solid #32B34B;
+}
+
+.dp-destination.active .dp-number {
+    color: #32B34B;
+    border: 2px solid #32B34B;
+}
+
+.dp-stationname{
+    width:72%;
+    text-align:center;
+}
+
+.dispatch-info {
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    width:272px;
+    height: 378px;
+    position: fixed;
+    transform: translate(309px, 72px);
+    background: rgb(252, 252, 252);
+    color: white;
+    border-radius: 10px;
+}
+
+.dp-displaystations{
+    display:flex;
+    background: black;
+    width:272px;
+    height:130px;
+    border-radius: 15px;
+}
+
+.dp-showstationTo{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 13px;
+    position:fixed;
+    gap:5px;
+    transform: translate(184px, 23px);
+}
+.dp-showstationFrom{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 13px;
+    position: fixed;
+    gap:5px;
+    transform: translate(23px, 23px);
+}
+
+.dp-st-circle {
+    width: 62px;
+    height: 62px;
+    background: black;
+    color: #32B34B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 40px;
+    border: 3.5px solid #32B34B;
+}
+
+.dp-arrow-st{
+    position: fixed;
+    transform: translate(121px, 42px);
+}
+
+.toggle-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+
+
+.toggle-btn .toggle-circle {
+    position: absolute;
+    left: 5px;
+    width: 131px;
+    height: 41px;
+    background: white;
+    border-radius: 34px;
+    transition: all 0.3s;
+}
+
+.toggle-btn {
+    width: 272px;
+    height: 50px;
+    background: #0071D9;
+    border-radius: 34px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s;
+    position: fixed;
+    transform: translate(0px, 80px);
+    justify-content: space-between; /* Ensure left and right alignment */
+}
+
+.toggle-btn .toggle-circle {
+    position: absolute;
+    left: 5px;
+    width: 131px;
+    height: 41px;
+    background: white;
+    border-radius: 34px;;
+    transition: all 0.3s;
+}
+.toggle-btn.active {
+    background: #C10000;
+}
+
+.toggle-btn span {
+    font-size: 14px;
+    color: white;
+    position: relative;
+    z-index: 1;
+}
+
+.toggle-btn .low {
+    color:black;
+    text-align: left;
+    margin-left: 30px;
+    font-size: 12px;
+    flex: 1; /* Push to left */
+}
+
+.toggle-btn .high {
+    color:black;
+    text-align: right;
+    margin-right: 30px;
+    font-size: 12px;
+    flex: 1; /* Push to right */
+    opacity: 0.5;
+}
+
+.toggle-btn.active .toggle-circle {
+    left: 50%;
+}
+
+.toggle-btn.active .low {
+    opacity: 0.5;
+}
+
+.toggle-btn.active .high {
+    opacity: 1;
+}
+
+/* Slide-to-Dispatch Button */
+.slide-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.slide-btn {
+    width: 272px;
+    height: 50px;
+    background: #32B34B;
+    border-radius: 34px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    user-select: none;
+    position: fixed;
+    transform: translate(0px, 95px);
+}
+
+.slide-btn .slide-icon {
+    width: 71px;
+    height: 39px;
+    background: white;
+    border-radius: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 5px;
+    color: green;
+    font-weight: bold;
+    transition: left 0.3s;
+}
+
+.slide-btn span {
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: 11px;
+    margin-left: 70px;
+}
+
+/* Add styles for disabled controls */
+.dp-destination.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+#slideToDispatch.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+#priorityToggle.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dispatch-warning {
+  background-color: rgba(255, 0, 0, 0.1);
+  border: 1px solid #ff6b6b;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
