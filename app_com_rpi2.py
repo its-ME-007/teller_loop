@@ -13,6 +13,8 @@ from collections import defaultdict, deque
 import random
 import logging
 
+# use sensor 5 data to check the pod's status. based on it use simple if conditions to check if a dispatch can be done or not. 
+
 # Set up logging
 logging.basicConfig(level=logging.INFO, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -317,6 +319,9 @@ def handle_mqtt_message(client, userdata, message):
             if len(parts) >= 4:
                 from_id = parts[2]
                 to_id = parts[3]
+                if not is_pod_available(from_id):
+                    logger.warning(f"Priority dispatch aborted: No pod available at station {from_id}")
+                    return
                 logger.info(f"Priority request from {from_id} to {to_id}: {data}")
                 
         elif topic.startswith('PTS/ACK/'):
@@ -381,7 +386,6 @@ def handle_dispatch_completed(data):
             status_message = json.dumps(status)
             mqtt.publish(f"{mqtt_status_topic_pub}{i}", status_message)
             
-            # Also emit via Socket.IO for browser clients
             socketio.emit('status', status, room=str(i))
             
 def map_sensor_data(data):
@@ -502,7 +506,14 @@ def handle_dispatch(data):
     
     logger.info(f"Dispatch request: from {from_id} to {to_id} with {priority} priority")
     
-    # Create dispatch data
+    # CHECK SENSOR-5 before dispatch
+    if not is_pod_available(from_id):
+        logger.warning(f"Dispatch aborted: No pod available at station {from_id}")
+        emit('dispatch_failed', {
+            'reason': f"No pod available at station {from_id}. Dispatch aborted."
+        }, room=request.sid)
+        return
+
     dispatch_data = {
         'from': from_id,
         'to': to_id,
@@ -633,6 +644,24 @@ logs = [
     {"task_id": 5652, "from": 5, "to": 6, "date": "16/8/24", "time": "15:15"}
 ]
 
+def is_pod_available(station_id):
+    try:
+        db = get_db()
+        row = db.execute(
+            '''SELECT sensor_5 FROM sensor_data 
+               WHERE station_id = ? 
+               ORDER BY timestamp DESC LIMIT 1''',
+            (station_id,)
+        ).fetchone()
+        if row:
+            return bool(row['sensor_5'])
+        else:
+            return False
+    except Exception as e:
+        logger.error(f"Error checking pod availability for station {station_id}: {e}")
+        return False
+
+
 @app.route('/')
 def home():
     return render_template('Tellerloop.html')  # Load the Tellerloop page
@@ -640,6 +669,28 @@ def home():
 @app.route('/<int:page_id>', methods=['GET', 'POST'])
 def handle_page(page_id):
     return render_template('Tellerloop.html', page_id=page_id)
+#purely for testing, remove in deployment
+@app.route('/api/set_sensor_status/<station_id>/<sensor_5_status>', methods=['POST'])
+def set_sensor_status(station_id, sensor_5_status):
+    try:
+        db = get_db()
+        sensor_5_value = True if sensor_5_status.lower() == 'true' else False
+        db.execute(
+            '''INSERT INTO sensor_data 
+               (station_id, sensor_1, sensor_2, sensor_3, sensor_4, 
+                sensor_5, sensor_6, sensor_7, sensor_8)
+               VALUES (?, 0, 0, 0, 0, ?, 0, 0, 0)''',
+            (station_id, sensor_5_value)
+        )
+        db.commit()
+        return jsonify({'message': f'Sensor-5 status updated for station {station_id}', 'sensor_5': sensor_5_value}), 200
+    except Exception as e:
+        logger.error(f"Error setting sensor status: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/check_pod_available/<station_id>')
+def check_pod_available(station_id):
+    return jsonify({'available': is_pod_available(station_id)})
 
 @app.route('/api/network_architecture')
 def get_network_architecture():
