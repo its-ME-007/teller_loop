@@ -6,7 +6,7 @@ import time
 broker = "test.mosquitto.org"
 port = 1883
 station_id = 2  # Receiver or sender station ID
-task_id = 40     # MUST match current_dispatch['task_id']
+task_id = 42     # MUST match current_dispatch['task_id']
 
 topic = f"PTS/ACK/{station_id}"
 payload = {
