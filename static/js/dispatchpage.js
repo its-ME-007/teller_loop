@@ -1,11 +1,10 @@
-// Refactored dispatchpage.js with live tracking removed, proper dispatch lifecycle handling via backend status events, and using station ID
-
 let currentStationName = "";
 let currentStationDisplay = "";
 let currentStationNumber = 1;
 let selectedDestination = null;
 let socket = null;
 let dispatchAllowed = true;
+let podAvailable = false; // NEW
 let isPriorityHigh = false;
 
 function formatStationDisplay(stationName) {
@@ -33,34 +32,24 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log('Connected to Socket.IO server');
     socket.emit('join', { station_id: currentStationNumber });
     checkDispatchPermission();
+    checkPodAvailability();
   });
     
   socket.on('dispatch_queued', function (data) {
     if (data.from && data.to) {
-      const message = `Dispatch queued: From station ${data.from} to station ${data.to}, position ${data.position}`;
-      showNotification(message, 'success');
+      showNotification(`Dispatch queued: From station ${data.from} to station ${data.to}`, 'success');
     }
   });
 
-  socket.on('dispatch_rejected', function (data) {
-    alert('Dispatch rejected: ' + data.reason);
+  socket.on('dispatch_failed', function (data) {
+    alert('Dispatch failed: ' + data.reason);
     resetSlider();
     setTimeout(() => { dispatchAllowed = true; updateDispatchUI(); }, 1000);
   });
 
   socket.on('system_status_changed', function (data) {
     dispatchAllowed = !data.status;
-    updateDispatchUI();
-    if (!data.status && !dispatchAllowed) {
-      dispatchAllowed = true;
-      updateDispatchUI();
-    }
-  });
-
-  socket.on('dispatch_event', function (data) {
-    if (data.from == currentStationNumber) {
-      showNotification(`Dispatch from ${data.from} to ${data.to} is now being processed!`, 'success');
-    }
+    updateDispatchUI(data.current_dispatch);
   });
 
   socket.on('status', function (data) {
@@ -101,30 +90,36 @@ document.addEventListener("DOMContentLoaded", function () {
       filteredDest.forEach(dest => {
         const div = document.createElement("div");
         div.classList.add("dp-destination");
-        div.onclick = () => {
-          if (!dispatchAllowed) return;
-          document.querySelectorAll(".dp-destination").forEach(el => el.classList.remove("active"));
-          div.classList.add("active");
-          dp_showtostation.textContent = dest.displayId;
-          dp_showtostation.style.border = "3.5px solid #32B34B";
-          dp_station_number.textContent = dest.displayId;
-          dp_station_number.style.color = "#32B34B";
-          dp_station_number.style.border = "2px solid #32B34B";
-          dp_station_name.textContent = dest.name;
-          selectedDestination = dest;
-        };
+        const stationNumber = parseInt(dest.name.split('-').pop());
+        if (!isNaN(stationNumber) && stationNumber > 0) {
+          dest.id = stationNumber;
+          const div = document.createElement("div");
+          div.classList.add("dp-destination");
+          div.onclick = () => {
+            if (!dispatchAllowed || !podAvailable) return;
+            document.querySelectorAll(".dp-destination").forEach(el => el.classList.remove("active"));
+            div.classList.add("active");
+            dp_showtostation.textContent = dest.displayId;
+            dp_showtostation.style.border = "3.5px solid #32B34B";
+            dp_station_number.textContent = dest.displayId;
+            dp_station_number.style.color = "#32B34B";
+            dp_station_number.style.border = "2px solid #32B34B";
+            dp_station_name.textContent = dest.name;
+            selectedDestination = dest;
+          };
 
-        const innerDiv = document.createElement("div");
-        innerDiv.classList.add("dp-content");
-        const numberDiv = document.createElement("div");
-        numberDiv.classList.add("dp-number");
-        numberDiv.textContent = dest.displayId;
-        const textSpan = document.createElement("span");
-        textSpan.classList.add("dp-stationname");
-        textSpan.textContent = dest.name;
-        innerDiv.append(numberDiv, textSpan);
-        div.appendChild(innerDiv);
-        destinationList.appendChild(div);
+          const innerDiv = document.createElement("div");
+          innerDiv.classList.add("dp-content");
+          const numberDiv = document.createElement("div");
+          numberDiv.classList.add("dp-number");
+          numberDiv.textContent = dest.displayId;
+          const textSpan = document.createElement("span");
+          textSpan.classList.add("dp-stationname");
+          textSpan.textContent = dest.name;
+          innerDiv.append(numberDiv, textSpan);
+          div.appendChild(innerDiv);
+          destinationList.appendChild(div);
+        }
       });
 
       checkDispatchPermission();
@@ -141,32 +136,63 @@ function checkDispatchPermission() {
     });
 }
 
-function updateDispatchUI() {
+function checkPodAvailability() {
+  fetch(`/api/check_pod_available/${currentStationNumber}`)
+    .then(res => res.json())
+    .then(data => {
+      podAvailable = data.available;
+      updateDispatchUI();
+    })
+    .catch(err => {
+      console.error('Error checking pod availability:', err);
+      podAvailable = false;
+      updateDispatchUI();
+    });
+}
+
+function updateDispatchUI(currentDispatch = null) {
   const slideButton = document.getElementById("slideToDispatch");
   const priorityToggle = document.getElementById("priorityToggle");
   const destinationButtons = document.querySelectorAll(".dp-destination");
 
-  if (!dispatchAllowed) {
+  if (!dispatchAllowed || !podAvailable) {
     slideButton.classList.add('disabled');
-    priorityToggle.classList.add('disabled');
-    destinationButtons.forEach(btn => btn.classList.add('disabled'));
-    if (!document.querySelector('.dispatch-warning')) {
-      const warn = document.createElement('div');
+    
+    if (!dispatchAllowed) {
+        priorityToggle.classList.add('disabled');
+        destinationButtons.forEach(btn => btn.classList.add('disabled'));
+    } else {
+        priorityToggle.classList.remove('disabled');
+        destinationButtons.forEach(btn => btn.classList.remove('disabled'));
+    }
+    let warn = document.querySelector('.dispatch-warning');
+    if (!warn) {
+      warn = document.createElement('div');
       warn.className = 'dispatch-warning';
-      warn.textContent = 'Dispatch not available: Another dispatch is in progress';
-      warn.style.color = 'red';
       document.querySelector('.dispatch-info')?.prepend(warn);
     }
+
+    if (!podAvailable) {
+      warn.textContent = 'No pod available. Please place a pod in the station.';
+      slideButton.querySelector('span').textContent = 'Please Place Pod in the station';
+    } else {
+      warn.textContent = 'Dispatch not available: Another dispatch is in progress';
+      slideButton.querySelector('span').textContent = 'Slide to dispatch';
+    }
+
+    warn.style.color = 'red';
+
   } else {
     slideButton.classList.remove('disabled');
     priorityToggle.classList.remove('disabled');
     destinationButtons.forEach(btn => btn.classList.remove('disabled'));
     document.querySelector('.dispatch-warning')?.remove();
+    slideButton.querySelector('span').textContent = 'Slide to dispatch';
   }
 }
 
 document.getElementById("priorityToggle").addEventListener("click", function () {
-  if (!dispatchAllowed) return;
+  if (!dispatchAllowed || !podAvailable) return;
   this.classList.toggle("active");
   isPriorityHigh = this.classList.contains("active");
 });
@@ -183,7 +209,9 @@ dp_slideButton.addEventListener("mousedown", startSlide);
 dp_slideButton.addEventListener("touchstart", startSlide);
 
 function startSlide(event) {
-  if (!dispatchAllowed) return alert("Dispatch unavailable right now.");
+  if (!dispatchAllowed || !podAvailable) {
+    return alert(podAvailable ? "Dispatch unavailable right now." : "No pod available. Please place pod first.");
+  }
   event.preventDefault();
   dp_isSliding = true;
   let startX = event.clientX || event.touches[0].clientX;
@@ -203,7 +231,7 @@ function startSlide(event) {
 
     if (parseInt(dp_slideIcon.style.left || "0") > 140) {
       dp_slideIcon.style.left = "190px";
-      if (!dispatchAllowed || !selectedDestination || !socket) {
+      if (!dispatchAllowed || !selectedDestination || !socket || !podAvailable) {
         resetSlider();
         return alert("Invalid dispatch state");
       }
