@@ -114,6 +114,9 @@
     font-size: 24px;
     color:black;
 }
+.kp-pin-dot.error {
+    color: red;
+}
 
 .kp-key {
     width: 56px;
@@ -121,6 +124,7 @@
     background: #ccc;
     border-radius: 50%;
     font-size: 25px;
+    font-family: 'Jost', sans-serif; 
     display: flex;
     justify-content: center;
     align-items: center;

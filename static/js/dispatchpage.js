@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
     socket.emit('join', { station_id: currentStationNumber });
     checkDispatchPermission();
   });
-
+    
   socket.on('dispatch_queued', function (data) {
     if (data.from && data.to) {
       const message = `Dispatch queued: From station ${data.from} to station ${data.to}, position ${data.position}`;

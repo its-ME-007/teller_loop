@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Station Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/keypasspage.css') }}">
+</head>
+
+<body>
+
+    <form id="pinForm" method="POST" style="margin: auto;">
+        <div class="keypass-container" style="display: flex; flex-direction: row; align-items: center;">
+
+            <!-- Left Panel (Logo Section) -->
+            <div style="flex: 1; display: flex; justify-content: center; align-items: center;">
+                <img src="{{ url_for('static', filename='images/PTS_logo.svg') }}" alt="Teller Loop Logo" style="width: 300px; height: auto;">
+            </div>
+
+            <div class="kp-right-panel" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+    
+                <!-- Heading Text FIRST -->
+                <div id="kp-pin-text" class="kp-pin_text" style="margin-bottom: 10px;">Please enter PIN</div>
+            
+                <!-- PIN Dots + Eye -->
+                <div class="kp-pin-container" style="display: flex; align-items: left; justify-content: left; gap: 10px;">
+                    <!-- PIN Dots -->
+                    <div class="kp-pin-display" style="display: flex; gap: 10px;">
+                        <span class="kp-pin-dot">○</span>
+                        <span class="kp-pin-dot">○</span>
+                        <span class="kp-pin-dot">○</span>
+                        <span class="kp-pin-dot">○</span>
+                    </div>
+                
+                    <!-- Eye Toggle Button -->
+                    <button type="button" id="kp-toggle-visibility" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+                        <img id="eyeIcon" src="{{ url_for('static', filename='images/hide.png') }}" alt="Toggle Visibility" style="width: 24px; height: 24px;">
+                    </button>
+                </div>
+                
+                
+            
+                <!-- Line underline -->
+                <div class="kp-underline"></div>
+            
+                <!-- Keypad -->
+                <div class="kp-keypad">
+                    {% for num in range(1, 10) %}
+                        <button type="button" class="kp-key" data-value="{{ num }}">{{ num }}</button>
+                    {% endfor %}
+                
+                    <!-- Backspace Button with icon -->
+                    <button type="button" class="kp-key back" data-value="back">
+                        <img src="{{ url_for('static', filename='images/BackspaceIcon.svg') }}" alt="Back" style="width: 24px; height: 24px;">
+                    </button>
+                
+                    <!-- Zero Button -->
+                    <button type="button" class="kp-key" data-value="0">0</button>
+                
+                    <!-- Enter Button with icon -->
+                    <button type="button" class="kp-key enter" data-value="enter">
+                        <img src="{{ url_for('static', filename='images/EnterIcon.svg') }}" alt="Enter" style="width: 24px; height: 24px;">
+                    </button>
+                </div>
+                
+            
+            </div>
+            
+        </div>
+
+        <!-- Hidden input to store final PIN for POST -->
+        <input type="hidden" name="pin" id="pinInput">
+    </form>
+
+    <script src="{{ url_for('static', filename='js/station_login.js') }}"></script>
+
+</body>
+</html>
