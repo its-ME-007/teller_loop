@@ -989,7 +989,15 @@ def handle_empty_pod_request_accepted(data):
     acceptance_message = json.dumps(data)
     mqtt.publish(f"{mqtt_topic_base}EMPTY_POD_ACCEPTED/{data.get('requesterStation', 'Unknown')}", acceptance_message)
     logger.info(f"Empty pod request accepted: {data}")
-
+    start_dispatch_message = json.dumps({
+        "type": "start_dispatch",
+        "request_id": data.get('requestId'),
+        "from": data.get('acceptorStation'),
+        "to": data.get('requesterStation')
+    })
+    mqtt.publish(f"{mqtt_topic_base}START_DISPATCH/{data.get('acceptorStation', 'Unknown')}", start_dispatch_message)
+    logger.info(f" Start dispatch published to {data.get('acceptorStation')}: {start_dispatch_message}")
+    
 if __name__ == '__main__':
     init_db()
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
