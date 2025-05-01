@@ -66,6 +66,14 @@ document.addEventListener("DOMContentLoaded", function () {
     showNotification(`Task ${data.task_id} completed!`, 'success');
   });
 
+  socket.on('pod_availability_changed', function ({ station_id, available }) {
+    if (parseInt(station_id) === currentStationNumber) {
+      podAvailable = available;
+      updateDispatchUI();
+      console.log(`Pod availability updated: ${available}`);
+    }
+  });
+
   fetch('/api/network_architecture')
     .then(resp => resp.json())
     .then(data => {

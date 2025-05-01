@@ -298,6 +298,13 @@ def handle_mqtt_message(client, userdata, message):
                         )
                     )
                     db.commit()
+                    mapped_data = map_sensor_data(sensor_data)
+                    sensor_5 = mapped_data.get('sensor_5', False)
+                    socketio.emit('pod_availability_changed', {
+                    'station_id': station_id,
+                    'available': not sensor_5
+                    }, room=str(station_id))
+
             except json.JSONDecodeError:
                 logger.warning(f"Invalid JSON format in sensor data: {data}")
                 
@@ -689,6 +696,12 @@ def set_sensor_status(station_id, sensor_5_status):
             (station_id, sensor_5_value)
         )
         db.commit()
+
+        socketio.emit('pod_availability_changed', {
+            'station_id': station_id,
+            'available': not sensor_5_value
+        }, room=str(station_id))
+
         return jsonify({'message': f'Sensor-5 status updated for station {station_id}', 'sensor_5': sensor_5_value}), 200
     except Exception as e:
         logger.error(f"Error setting sensor status: {e}")
