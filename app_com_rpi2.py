@@ -33,14 +33,6 @@ high_priority_queue = deque()
 dispatch_in_progress = False
 current_dispatch = None
 
-# Define allowed stations (name: IP)
-ALLOWED_IPS = {
-    'passthrough-station-1': '192.168.90.8',
-    'passthrough-station-2': '192.168.90.3',
-    'passthrough-station-3': '192.168.90.6',
-    'passthrough-station-4': '192.168.43.200'
-}
-
 # Map station names to their IDs for easier reference
 STATION_IDS = {
     'passthrough-station-1': 1,
@@ -49,11 +41,9 @@ STATION_IDS = {
     'passthrough-station-4': 4
 }
 
-# Reverse mapping for IP to station name lookup
-IP_TO_STATION = {ip: name for name, ip in ALLOWED_IPS.items()}
-
 # MQTT Configuration
-mqtt_broker_ip = "test.mosquitto.org"
+mqtt_broker_ip = "localhost"
+mqtt_broker_port = 1883
 mqtt_username = None
 mqtt_password = None
 
@@ -244,7 +234,14 @@ def execute_dispatch(dispatch_data):
     else:
         logger.error(f"Could not find station names for IDs: from={from_id}, to={to_id}")
     
-    # Update status for all stations
+    socketio.emit('system_status_changed', {
+        'status': True,
+        'current_dispatch': {
+            'from': from_id,
+            'to': to_id,
+            'priority': priority
+        }
+    })
     for i in range(1, 5):  # Assuming stations 1 to 4
         if i == from_id:
             status = {'status': 'sending', 'destination': to_id, 'task_id': task_id}
@@ -258,10 +255,7 @@ def execute_dispatch(dispatch_data):
         
         status_message = json.dumps(msg)
         mqtt.publish(f"{mqtt_status_topic_pub_1}{i}", status_message)
-        #mqtt.publish(f"{mqtt_status_topic_pub}{i}", status_message)
-        
-        
-        # Also emit via Socket.IO for browser clients
+ 
         socketio.emit('status', status, room=str(i))
 
 @mqtt.on_message()
@@ -369,6 +363,11 @@ def handle_dispatch_completed(data):
             )
             db.commit()
         
+                # Notify UI to re-enable dispatch
+        socketio.emit('system_status_changed', {
+            'status': False,
+            'current_dispatch': None
+        })
         # Reset dispatch state
         dispatch_in_progress = False
         current_dispatch = None
@@ -434,6 +433,12 @@ def handle_join(data):
         join_room(page_id)
         logger.info(f"Joined room (page ID): {page_id}")
 
+    if dispatch_in_progress and current_dispatch:
+        emit('system_status_changed', {
+            'status': True,
+            'current_dispatch': current_dispatch
+        }, room=sid)
+
 @socketio.on('hello_packet')
 def handle_hello_packet(data):
     sender = data['node']
@@ -492,11 +497,12 @@ def handle_dispatch(data):
         to_id = int(to_station.split('-')[-1])
     else:
         to_id = int(to_station)
+
     
     priority = data.get('priority', 'low')
     
     logger.info(f"Dispatch request: from {from_id} to {to_id} with {priority} priority")
-    
+    emit('station_dispatch_started', {'from': from_id}, broadcast=True, include_self=False)
     # Create dispatch data
     dispatch_data = {
         'from': from_id,
@@ -630,22 +636,33 @@ logs = [
 
 @app.route('/')
 def home():
-    return render_template('Tellerloop.html')  # Load the Tellerloop page
+    return render_template('home.html')  # Load the Tellerloop page
 
 @app.route('/<int:page_id>', methods=['GET', 'POST'])
 def handle_page(page_id):
-    return render_template('Tellerloop.html', page_id=page_id)
+    VALID_STATIONS = {1, 2, 3, 4}
 
-@app.route('/api/get_client_ip')
-def get_client_ip():
-    return jsonify({'ip': request.remote_addr})
+    if page_id not in VALID_STATIONS:
+        return render_template('404.html'), 404
 
-@app.route('/api/check_ip', methods=['GET'])
-def check_ip():
-    user_ip = request.remote_addr
-    # Check if the client IP is one of the allowed IPs (values in ALLOWED_IPS)
-    is_allowed = user_ip in ALLOWED_IPS.values()
-    return jsonify({'is_allowed': is_allowed})
+    if request.method == 'POST':
+        entered_pin = request.form.get('pin')  # <-- PIN submitted from form
+        # Passwords set here:
+        station_passwords = {
+            1: "1111",
+            2: "2222",
+            3: "3333",
+            4: "4444"
+        }
+        correct_pin = station_passwords.get(page_id)
+
+        if entered_pin == correct_pin:
+            return render_template('Tellerloop.html', page_id=page_id)
+        else:
+            return render_template('station_login.html', page_id=page_id, error="Incorrect PIN.")
+
+    # If GET request, show login page first
+    return render_template('station_login.html', page_id=page_id)
 
 @app.route('/api/network_architecture')
 def get_network_architecture():
@@ -705,6 +722,38 @@ def get_network_architecture():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/live_tracking')
+def get_live_tracking():
+    try:
+        db = get_db()
+        # Get the most recent entry from history table
+        latest_entry = db.execute(
+            'SELECT * FROM history ORDER BY timestamp DESC LIMIT 1'
+        ).fetchone()
+       
+        if (latest_entry):
+            return jsonify({
+                'system_status': app.config['SYSTEM_STATUS'],
+                'sender': latest_entry['sender'],
+                'receiver': latest_entry['receiver'],
+                'task_id': latest_entry['task_id']
+            })
+        else:
+            return jsonify({
+                'system_status': app.config['SYSTEM_STATUS'],
+                'sender': None,
+                'receiver': None,
+                'task_id': None
+            })
+    except Exception as e:
+        logger.error(f"Error fetching live tracking data: {e}")
+        return jsonify({
+            'system_status': app.config['SYSTEM_STATUS'],
+            'sender': None,
+            'receiver': None,
+            'task_id': None
+        })
+    
 @app.route('/api/get_sensor_data/<station_id>')
 def get_sensor_data(station_id):
     db = get_db()
@@ -786,13 +835,10 @@ def drop_all_tables():
 @app.route('/api/clear_history', methods=['DELETE'])
 def clear_history():
     try:
-        # Drop all existing tables
         drop_all_tables()
         
-        # Reinitialize the database
         init_db()
         
-        # Find the latest network architecture JSON
         directory = os.path.dirname(__file__)
         json_files = glob.glob(os.path.join(directory, "network_architecture*.json"))
         
@@ -800,17 +846,14 @@ def clear_history():
             logger.warning("No network architecture files found")
             return jsonify({'error': 'No architecture files found'}), 404
         
-        # Get the most recently modified JSON file
         latest_file = max(json_files, key=os.path.getmtime)
         
-        # Load the JSON data
         with open(latest_file, 'r') as json_file:
             data = json.load(json_file)
         
         logger.info(f"Loaded network architecture from {latest_file}")
         logger.info(f"Loaded JSON data keys: {data.keys()}")
         
-        # Process components from the JSON file
         components = data.get('components', [])
         logger.info(f"Found {len(components)} components in JSON file")
         
@@ -822,7 +865,6 @@ def clear_history():
             
             logger.info(f"Processing component: type={comp_type}, id={comp_id}")
             
-            # Create tables only for specific component types
             if comp_type in ['passthrough-station', 'bottom-loading-station']:
                 if comp_id:
                     table_name = f"component_{comp_id}"
@@ -893,15 +935,19 @@ def check_dispatch_allowed():
 def get_current_station_by_id(station_id):
     return jsonify({'station_id': station_id})
 
-# SocketIO events for empty pod requests
 @socketio.on('request_empty_pod')
 def handle_empty_pod_request(data):
-    # Broadcast empty pod request to all other stations
     requester_station = data.get('requesterStation', 'Unknown')
-    emit('empty_pod_request', data, broadcast=True, include_self=False)
+
+    # MQTT publish
     request_message = json.dumps(data)
     mqtt.publish(f"{mqtt_topic_base}EMPTY_POD_REQUEST/{requester_station}", request_message)
+
+    # Broadcast to all connected clients (except sender)
+    emit('empty_pod_request', data, broadcast=True, include_self=False)
+
     logger.info(f"Empty pod request from {requester_station}")
+
 
 @socketio.on('empty_pod_request_accepted')
 def handle_empty_pod_request_accepted(data):
@@ -909,6 +955,14 @@ def handle_empty_pod_request_accepted(data):
     acceptance_message = json.dumps(data)
     mqtt.publish(f"{mqtt_topic_base}EMPTY_POD_ACCEPTED/{data.get('requesterStation', 'Unknown')}", acceptance_message)
     logger.info(f"Empty pod request accepted: {data}")
+    start_dispatch_message = json.dumps({
+        "type": "start_dispatch",
+        "request_id": data.get('requestId'),
+        "from": data.get('acceptorStation'),
+        "to": data.get('requesterStation')
+    })
+    mqtt.publish(f"{mqtt_topic_base}START_DISPATCH/{data.get('acceptorStation', 'Unknown')}", start_dispatch_message)
+    logger.info(f" Start dispatch published to {data.get('acceptorStation')}: {start_dispatch_message}")
 
 if __name__ == '__main__':
     init_db()

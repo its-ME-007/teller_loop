@@ -12,7 +12,7 @@ const keypass_container = document.getElementById('keypass-container-id');
 const keypass_ActionIcon = document.getElementById('KeypassActionIcon');
 
 
-let state="standb"
+let state="standby"
 function toggleTrackingInfo() {
     console.log("Check..")
     if (state=="standby") {
@@ -23,8 +23,8 @@ function toggleTrackingInfo() {
       standbyInfoBox.style.display = 'none';
     }
   }
-
-document.addEventListener("DOMContentLoaded", function () {
+  
+  document.addEventListener("DOMContentLoaded", function () {
     const buttons = document.querySelectorAll(".nav-button");
     
     buttons.forEach(button => {
@@ -40,10 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("Task Aborted!");
     });
 
-    const acceptButton = document.querySelector(".accept");
-    acceptButton.addEventListener("click", function () {
-        alert("Request Accepted!");
-    });
+    
 });
 
 function toggleScreensOnClick(buttonid) {
@@ -83,36 +80,58 @@ function toggleScreensOnClick(buttonid) {
 
   }
 
-  function hideallelements(){
-    db_content.style.display = 'none';
-    db_request.style.display = 'none';
-    trackingInfoBox.style.display = 'none';
-    dp_container.style.display = 'none';
-    history_container.style.display = 'none';
-    maintainance_container.style.display = 'none';
-    cleardata_container.style.display = 'none';
-    keypass_container.style.display = 'none';
-    document.getElementById("kp-left-panel-cleardata-id").style.display = 'none';
-    document.getElementById("kp-left-panel-maintainance-id").style.display = 'none';
-
-    
+  function hideallelements() {
+    // Do NOT hide dashboard elements — they are toggled in showdashboardpage
+    if (db_content) db_content.style.display = 'none';
+    if (db_request) db_request.style.display = 'none';
+    if (trackingInfoBox) trackingInfoBox.style.display = 'none';
+    if (dp_container) dp_container.style.display = 'none';
+    if (history_container) history_container.style.display = 'none';
+    if (maintainance_container) maintainance_container.style.display = 'none';
+    if (cleardata_container) cleardata_container.style.display = 'none';
+    if (keypass_container) keypass_container.style.display = 'none';
+  
+    // Clear left panel additions if any
+    const clearLeftPanel = document.getElementById("kp-left-panel-cleardata-id");
+    if (clearLeftPanel) clearLeftPanel.style.display = 'none';
+  
+    const maintainLeftPanel = document.getElementById("kp-left-panel-maintainance-id");
+    if (maintainLeftPanel) maintainLeftPanel.style.display = 'none';
   }
+  
 
-  function showdashboardpage(){
-    toggleTrackingInfo()
+  window.showdashboardpage = function () {
+    hideallelements();
     db_content.style.display = 'flex';
     db_request.style.display = 'flex';
-  }
-
+  
+    fetch('/api/live_tracking')
+      .then(response => response.json())
+      .then(data => {
+        console.log("Live Tracking Data:", data);
+        state = data.system_status === true ? "active" : "standby";
+        toggleTrackingInfo();
+        if (typeof updateDashboardUI === 'function') updateDashboardUI(data);
+      })
+      .catch(error => console.error("Error fetching live tracking:", error));
+  };
+  
+  
+  
+  
+  
   function showdispatchpage(){
+    hideallelements();
     dp_container.style.display = 'flex';
   }
 
   function showhistorypage(){
+    hideallelements();
     history_container.style.display = 'flex';
   }
 
   function showkeypasspage(){
+    hideallelements();
     if (getActiveButton()=="Maintainance-Btn"){
       document.getElementById("kp-left-panel-maintainance-id").style.display = 'flex';
       keypass_container.style.display = 'flex';
@@ -124,11 +143,12 @@ function toggleScreensOnClick(buttonid) {
   }
   
   function showmaintainancepage(){
+    hideallelements();
     maintainance_container.style.display = 'flex';
   }
 
   function showcleardatapage(){
-    
+    hideallelements();
     cleardata_container.style.display = 'flex';
   }
 
@@ -139,4 +159,17 @@ function toggleScreensOnClick(buttonid) {
   function shownotifications(){
 
   }
+  document.addEventListener("DOMContentLoaded", function () {
+    const socket = io(); // Ensure socket is connected after DOM is ready
+  
+    socket.on('system_status_changed', function (data) {
+      console.log("system_status_changed received:", data);
+      if (data.status === false) {
+        console.log("Dispatch completed. Redirecting to Dispatch Page...");
+        showdispatchpage();
+      }
+    });
+  });
 
+  
+  
