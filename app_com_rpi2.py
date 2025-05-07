@@ -44,10 +44,10 @@ STATION_IDS = {
 }
 
 # MQTT Configuration
-mqtt_broker_ip = "localhost"
+mqtt_broker_ip = "test.mosquitto.org"
 mqtt_broker_port = 1883
-mqtt_username = None
-mqtt_password = None
+mqtt_username = "oora"
+mqtt_password = "oora"
 
 # MQTT Topics
 mqtt_topic_base = 'PTS/'
@@ -674,11 +674,9 @@ def is_pod_available(station_id):
         logger.error(f"Error checking pod availability for station {station_id}: {e}")
         return False
 
-
 @app.route('/')
 def home():
     return render_template('home.html')  # Load the Tellerloop page
-
 @app.route('/<int:page_id>', methods=['GET', 'POST'])
 def handle_page(page_id):
     VALID_STATIONS = {1, 2, 3, 4}
@@ -704,6 +702,35 @@ def handle_page(page_id):
 
     # If GET request, show login page first
     return render_template('station_login.html', page_id=page_id)
+
+#purely for testing, remove in deployment
+@app.route('/api/set_sensor_status/<station_id>/<sensor_5_status>', methods=['POST'])
+def set_sensor_status(station_id, sensor_5_status):
+    try:
+        db = get_db()
+        sensor_5_value = True if sensor_5_status.lower() == 'true' else False
+        db.execute(
+            '''INSERT INTO sensor_data 
+               (station_id, sensor_1, sensor_2, sensor_3, sensor_4, 
+                sensor_5, sensor_6, sensor_7, sensor_8)
+               VALUES (?, 0, 0, 0, 0, ?, 0, 0, 0)''',
+            (station_id, sensor_5_value)
+        )
+        db.commit()
+
+        socketio.emit('pod_availability_changed', {
+            'station_id': station_id,
+            'available': not sensor_5_value
+        }, room=str(station_id))
+
+        return jsonify({'message': f'Sensor-5 status updated for station {station_id}', 'sensor_5': sensor_5_value}), 200
+    except Exception as e:
+        logger.error(f"Error setting sensor status: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/check_pod_available/<station_id>')
+def check_pod_available(station_id):
+    return jsonify({'available': is_pod_available(station_id)})
 
 @app.route('/api/network_architecture')
 def get_network_architecture():
@@ -795,7 +822,7 @@ def get_live_tracking():
             'task_id': None
         })
     
-@app.route('/api/get_sensor_data/<station_id>')
+@app.route('/api/get_sensor_data/<station_id>',methods = ["POST"])
 def get_sensor_data(station_id):
     db = get_db()
     rows = db.execute(
@@ -989,7 +1016,6 @@ def handle_empty_pod_request(data):
 
     logger.info(f"Empty pod request from {requester_station}")
 
-
 @socketio.on('empty_pod_request_accepted')
 def handle_empty_pod_request_accepted(data):
     emit('empty_pod_request_accepted', data, broadcast=True)
@@ -1004,7 +1030,7 @@ def handle_empty_pod_request_accepted(data):
     })
     mqtt.publish(f"{mqtt_topic_base}START_DISPATCH/{data.get('acceptorStation', 'Unknown')}", start_dispatch_message)
     logger.info(f" Start dispatch published to {data.get('acceptorStation')}: {start_dispatch_message}")
-
+    
 if __name__ == '__main__':
     init_db()
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
