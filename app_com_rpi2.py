@@ -13,6 +13,8 @@ from collections import defaultdict, deque
 import random
 import logging
 
+# use sensor 5 data to check the pod's status. based on it use simple if conditions to check if a dispatch can be done or not. 
+
 # Set up logging
 logging.basicConfig(level=logging.INFO, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -296,6 +298,13 @@ def handle_mqtt_message(client, userdata, message):
                         )
                     )
                     db.commit()
+                    mapped_data = map_sensor_data(sensor_data)
+                    sensor_5 = mapped_data.get('sensor_5', False)
+                    socketio.emit('pod_availability_changed', {
+                    'station_id': station_id,
+                    'available': not sensor_5
+                    }, room=str(station_id))
+
             except json.JSONDecodeError:
                 logger.warning(f"Invalid JSON format in sensor data: {data}")
                 
@@ -317,6 +326,9 @@ def handle_mqtt_message(client, userdata, message):
             if len(parts) >= 4:
                 from_id = parts[2]
                 to_id = parts[3]
+                if not is_pod_available(from_id):
+                    logger.warning(f"Priority dispatch aborted: No pod available at station {from_id}")
+                    return
                 logger.info(f"Priority request from {from_id} to {to_id}: {data}")
                 
         elif topic.startswith('PTS/ACK/'):
@@ -381,7 +393,6 @@ def handle_dispatch_completed(data):
             status_message = json.dumps(status)
             mqtt.publish(f"{mqtt_status_topic_pub}{i}", status_message)
             
-            # Also emit via Socket.IO for browser clients
             socketio.emit('status', status, room=str(i))
             
 def map_sensor_data(data):
@@ -502,8 +513,15 @@ def handle_dispatch(data):
     priority = data.get('priority', 'low')
     
     logger.info(f"Dispatch request: from {from_id} to {to_id} with {priority} priority")
-    emit('station_dispatch_started', {'from': from_id}, broadcast=True, include_self=False)
-    # Create dispatch data
+    
+    # CHECK SENSOR-5 before dispatch
+    if not is_pod_available(from_id):
+        logger.warning(f"Dispatch aborted: No pod available at station {from_id}")
+        emit('dispatch_failed', {
+            'reason': f"No pod available at station {from_id}. Dispatch aborted."
+        }, room=request.sid)
+        return
+
     dispatch_data = {
         'from': from_id,
         'to': to_id,
@@ -633,6 +651,29 @@ logs = [
     {"task_id": 6519, "from": 3, "to": 6, "date": "15/8/24", "time": "-"},
     {"task_id": 5652, "from": 5, "to": 6, "date": "16/8/24", "time": "15:15"}
 ]
+
+def is_pod_available(station_id):
+    """
+    Returns True if pod is available, False otherwise.
+    Sensor 5 = False => Pod available
+    Sensor 5 = True => Pod not available
+    """
+    try:
+        db = get_db()
+        row = db.execute(
+            '''SELECT sensor_5 FROM sensor_data 
+               WHERE station_id = ? 
+               ORDER BY timestamp DESC LIMIT 1''',
+            (station_id,)
+        ).fetchone()
+        if row:
+            return not bool(row['sensor_5'])
+        else:
+            return False
+    except Exception as e:
+        logger.error(f"Error checking pod availability for station {station_id}: {e}")
+        return False
+
 
 @app.route('/')
 def home():

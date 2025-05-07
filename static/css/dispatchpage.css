@@ -313,9 +313,18 @@
 }
 
 #slideToDispatch.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
+    opacity: 1; /* keep it full visible */
+    cursor: not-allowed;
+    pointer-events: none;
+    background-color: #C0C0C0; /* light grey */
+}
+  
+#slideToDispatch.disabled span {
+    color: black; /* dark text for better contrast */
+}
+
+#slideToDispatch.disabled .dp-slide-arrow {
+    fill: grey !important;
 }
 
 #priorityToggle.disabled {
