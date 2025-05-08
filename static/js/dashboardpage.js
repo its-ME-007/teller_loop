@@ -226,6 +226,7 @@ if (acceptButton) {
       console.log("Dispatch triggered by station", data.from);
       if (typeof showdashboardpage === 'function') showdashboardpage();
       const abortButton = document.querySelector('.abort-button');
+      
     });
     
     socket.on('connect', function () {
