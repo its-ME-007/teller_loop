@@ -1025,6 +1025,28 @@ def check_dispatch_allowed():
         'reason': 'System is already dispatching' if app.config['SYSTEM_STATUS'] else None
     })
 
+@app.route('/api/maintenance/selftest/<int:station_id>', methods=['POST'])
+def maintenance_self_test(station_id):
+    mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": "self_test"}))
+    return jsonify({"status": "sent", "action": "self_test"}), 200
+
+@app.route('/api/maintenance/inching/<int:station_id>', methods=['POST'])
+def maintenance_inching(station_id):
+    direction = request.json.get('direction')
+    if direction not in ['moveLeft', 'moveRight']:
+        return jsonify({"error": "Invalid direction"}), 400
+    mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": direction}))
+    return jsonify({"status": "sent", "action": direction}), 200
+
+@app.route('/api/maintenance/airdivert/<int:station_id>', methods=['POST'])
+def maintenance_air_divert(station_id):
+    action = request.json.get('action')
+    power = request.json.get('power')
+    if action not in ['suck', 'blow'] or not isinstance(power, int):
+        return jsonify({"error": "Invalid request"}), 400
+    mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": action, "power": power}))
+    return jsonify({"status": "sent", "action": action, "power": power}), 200
+
 @app.route('/api/get_current_station/<int:station_id>', methods=['GET'])
 def get_current_station_by_id(station_id):
     return jsonify({'station_id': station_id})
