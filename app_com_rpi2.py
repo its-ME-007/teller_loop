@@ -44,7 +44,7 @@ STATION_IDS = {
 }
 
 # MQTT Configuration
-mqtt_broker_ip = "192.168.90.8"
+mqtt_broker_ip = "192.168.90.200"
 mqtt_broker_port = 1883
 mqtt_username = "oora"
 mqtt_password = "oora"
