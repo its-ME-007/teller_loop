@@ -122,6 +122,8 @@ function toggleScreensOnClick(buttonid) {
   
   function showdispatchpage(){
     hideallelements();
+    checkDispatchPermission();
+    checkPodAvailability();
     dp_container.style.display = 'flex';
   }
 

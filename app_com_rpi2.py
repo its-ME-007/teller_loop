@@ -44,21 +44,22 @@ STATION_IDS = {
 }
 
 # MQTT Configuration
-mqtt_broker_ip = "test.mosquitto.org"
+mqtt_broker_ip = "192.168.90.8"
 mqtt_broker_port = 1883
 mqtt_username = "oora"
 mqtt_password = "oora"
 
 # MQTT Topics
+
 mqtt_topic_base = 'PTS/'
 # Topics for subscribing (with wildcards)
-mqtt_sensor_data_topic_sub = mqtt_topic_base + 'SENSORDATA/'
-mqtt_dispatch_topic_sub = mqtt_topic_base + 'DISPATCH/'
-mqtt_status_topic_sub = mqtt_topic_base + 'STATUS/'
+mqtt_sensor_data_topic_sub = mqtt_topic_base + 'SENSORDATA/#'
+mqtt_dispatch_topic_sub = mqtt_topic_base + 'DISPATCH/#'
+mqtt_status_topic_sub = mqtt_topic_base + 'STATUS/#'
 
-mqtt_priority_topic_sub = mqtt_topic_base + 'PRIORITY/'
-mqtt_ack_topic_sub = mqtt_topic_base + 'ACK/'
-mqtt_script_topic_sub = mqtt_topic_base + 'SCRIPT/'
+mqtt_priority_topic_sub = mqtt_topic_base + 'PRIORITY/#'
+mqtt_ack_topic_sub = mqtt_topic_base + 'ACK/#'
+mqtt_script_topic_sub = mqtt_topic_base + 'SCRIPT/#'
 
 # Topics for publishing (without wildcards)
 mqtt_sensor_data_topic_pub = mqtt_topic_base + 'SENSORDATA/'
@@ -73,17 +74,28 @@ app = Flask(__name__)
 CORS(app, resources={r"/": {"origins": "*"}})
 
 # MQTT Configuration
+# app.config['TEMPLATES_AUTO_RELOAD'] = True
+# app.config['MQTT_BROKER_URL'] = mqtt_broker_ip
+# app.config['MQTT_BROKER_PORT'] = 1883
+# app.config['MQTT_USERNAME'] = mqtt_username
+# app.config['MQTT_PASSWORD'] = mqtt_password
+# app.config['MQTT_KEEPALIVE'] = 60  # Reduced from 64800 to be more reasonable
+# app.config['MQTT_TLS_ENABLED'] = False
+# app.config['MQTT_CLIENT_ID'] = f'rpibroker_{int(time.time())}'  # Make client ID unique
+# app.config['MQTT_CLEAN_SESSION'] = True  # Ensure clean session on reconnect
+# app.config['MQTT_REFRESH_TIME'] = 30  # More frequent refresh to detect connection issues
+#app.config['SECRET_KEY'] = 'secret!'
+
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['MQTT_BROKER_URL'] = mqtt_broker_ip
 app.config['MQTT_BROKER_PORT'] = 1883
+app.config['MQTT_CLIENT_ID'] = f"desktop_{int(time.time())}"
 app.config['MQTT_USERNAME'] = mqtt_username
 app.config['MQTT_PASSWORD'] = mqtt_password
-app.config['MQTT_KEEPALIVE'] = 60  # Reduced from 64800 to be more reasonable
+app.config['MQTT_KEEPALIVE'] = 64840
 app.config['MQTT_TLS_ENABLED'] = False
-app.config['MQTT_CLIENT_ID'] = f'rpibroker_{int(time.time())}'  # Make client ID unique
-app.config['MQTT_CLEAN_SESSION'] = True  # Ensure clean session on reconnect
-app.config['MQTT_REFRESH_TIME'] = 30  # More frequent refresh to detect connection issues
-app.config['SECRET_KEY'] = 'secret!'
+
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 app.config['SYSTEM_STATUS'] = False
 
@@ -92,6 +104,15 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 DATABASE = 'lan_monitoring.db'
 
+topics_to_subscribe = [
+        (mqtt_sensor_data_topic_sub, 1),
+        (mqtt_dispatch_topic_sub, 1),
+        (mqtt_status_topic_sub, 1),
+        (mqtt_priority_topic_sub, 1),
+        (mqtt_ack_topic_sub, 1),
+        (mqtt_script_topic_sub, 1)
+    ]
+mqtt.subscribe(topics_to_subscribe)
 # Subscribe to MQTT topics
 @mqtt.on_connect()
 def handle_mqtt_connect(client, userdata, flags, rc):
@@ -105,8 +126,19 @@ def handle_mqtt_connect(client, userdata, flags, rc):
         (mqtt_ack_topic_sub, 1),
         (mqtt_script_topic_sub, 1)
     ]
-    client.subscribe(topics_to_subscribe)
+    mqtt.subscribe(topics_to_subscribe)
     logger.info(f"Subscribed to topics: {', '.join(t[0] for t in topics_to_subscribe)}")
+
+@mqtt.on_disconnect()
+def handle_disconnect(client, userdata, rc):
+    print(f"[MQTT] Disconnected from broker with result code: {rc}")
+    if rc == 0:
+        print("Disconnected gracefully.")
+    else:
+        print("Unexpected disconnect! Possible causes:")
+        print("- Broker rejected the connection (bad credentials, client ID conflict, etc.)")
+        print("- Network error")
+        print("- Callback crashed")
 
 def get_db():
     conn = sqlite3.connect(DATABASE)
@@ -128,15 +160,15 @@ def init_db():
 
         db.execute('''CREATE TABLE IF NOT EXISTS sensor_data
                       (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                       station_id TEXT NOT NULL,
-                       sensor_1 BOOLEAN,
-                       sensor_2 BOOLEAN,
-                       sensor_3 BOOLEAN,
-                       sensor_4 BOOLEAN,
-                       sensor_5 BOOLEAN,
-                       sensor_6 BOOLEAN,
-                       sensor_7 BOOLEAN,
-                       sensor_8 BOOLEAN,
+                       station_id TEXT NOT NULL UNIQUE,
+                       S1 BOOLEAN,
+                       S2 BOOLEAN,
+                       S3 BOOLEAN,
+                       S4 BOOLEAN,
+                       P1 BOOLEAN,
+                       P2 BOOLEAN,
+                       P3 BOOLEAN,
+                       P4 BOOLEAN,
                        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
                        )''')
 
@@ -279,27 +311,40 @@ def handle_mqtt_message(client, userdata, message):
                 sensor_data = json.loads(data)
                 if isinstance(sensor_data, dict):
                     db = get_db()
-                    mapped_data = map_sensor_data(sensor_data)
+                    #mapped_data = map_sensor_data(sensor_data)
+                    mapped_data = sensor_data
                     db.execute(
-                        '''INSERT INTO sensor_data 
-                           (station_id, sensor_1, sensor_2, sensor_3, sensor_4, 
-                            sensor_5, sensor_6, sensor_7, sensor_8) 
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                        '''
+                        INSERT INTO sensor_data 
+                        (station_id, S1, S2, S3, S4, P1, P2, P3, P4) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(station_id) DO UPDATE SET
+                            S1 = excluded.S1,
+                            S2 = excluded.S2,
+                            S3 = excluded.S3,
+                            S4 = excluded.S4,
+                            P1 = excluded.P1,
+                            P2 = excluded.P2,
+                            P3 = excluded.P3,
+                            P4 = excluded.P4,
+                            timestamp = CURRENT_TIMESTAMP
+                        ''',
                         (
                             station_id,
-                            mapped_data.get('sensor_1', False),
-                            mapped_data.get('sensor_2', False),
-                            mapped_data.get('sensor_3', False),
-                            mapped_data.get('sensor_4', False),
-                            mapped_data.get('sensor_5', False),
-                            mapped_data.get('sensor_6', False),
-                            mapped_data.get('sensor_7', False),
-                            mapped_data.get('sensor_8', False)
+                            mapped_data.get('S1', False),
+                            mapped_data.get('S2', False),
+                            mapped_data.get('S3', False),
+                            mapped_data.get('S4', False),
+                            mapped_data.get('P1', False),
+                            mapped_data.get('P2', False),
+                            mapped_data.get('P3', False),
+                            mapped_data.get('P4', False)
                         )
                     )
                     db.commit()
-                    mapped_data = map_sensor_data(sensor_data)
-                    sensor_5 = mapped_data.get('sensor_5', False)
+                    #mapped_data = map_sensor_data(sensor_data)
+                    sensor_5 = mapped_data.get('P1', False)
+                    print("Emitting Sensor 5:",sensor_5)
                     socketio.emit('pod_availability_changed', {
                     'station_id': station_id,
                     'available': not sensor_5
@@ -661,47 +706,28 @@ def is_pod_available(station_id):
     try:
         db = get_db()
         row = db.execute(
-            '''SELECT sensor_5 FROM sensor_data 
+            '''SELECT P1 FROM sensor_data 
                WHERE station_id = ? 
-               ORDER BY timestamp DESC LIMIT 1''',
+            ''',
             (station_id,)
         ).fetchone()
         if row:
-            return not bool(row['sensor_5'])
+            return not bool(row[0])
         else:
             return False
     except Exception as e:
         logger.error(f"Error checking pod availability for station {station_id}: {e}")
         return False
 
+
 @app.route('/')
 def home():
     return render_template('home.html')  # Load the Tellerloop page
+
 @app.route('/<int:page_id>', methods=['GET', 'POST'])
 def handle_page(page_id):
-    VALID_STATIONS = {1, 2, 3, 4}
-
-    if page_id not in VALID_STATIONS:
-        return render_template('404.html'), 404
-
-    if request.method == 'POST':
-        entered_pin = request.form.get('pin')  # <-- PIN submitted from form
-        # Passwords set here:
-        station_passwords = {
-            1: "1111",
-            2: "2222",
-            3: "3333",
-            4: "4444"
-        }
-        correct_pin = station_passwords.get(page_id)
-
-        if entered_pin == correct_pin:
-            return render_template('Tellerloop.html', page_id=page_id)
-        else:
-            return render_template('station_login.html', page_id=page_id, error="Incorrect PIN.")
-
-    # If GET request, show login page first
-    return render_template('station_login.html', page_id=page_id)
+     
+    return render_template('Tellerloop.html', page_id=page_id)
 
 #purely for testing, remove in deployment
 @app.route('/api/set_sensor_status/<station_id>/<sensor_5_status>', methods=['POST'])
@@ -1015,6 +1041,7 @@ def handle_empty_pod_request(data):
     emit('empty_pod_request', data, broadcast=True, include_self=False)
 
     logger.info(f"Empty pod request from {requester_station}")
+
 
 @socketio.on('empty_pod_request_accepted')
 def handle_empty_pod_request_accepted(data):
