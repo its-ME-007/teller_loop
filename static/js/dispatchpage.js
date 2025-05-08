@@ -18,7 +18,8 @@ document.addEventListener("DOMContentLoaded", function () {
   currentStationNumber = typeof STATION_ID !== "undefined" ? STATION_ID : 1;
   currentStationName = `passthrough-station-${currentStationNumber}`;
   currentStationDisplay = formatStationDisplay(currentStationName);
-
+  const dp_slideButton = document.getElementById("slideToDispatch");
+  if (!dp_slideButton) return;
   const dpShowFromEl = document.querySelector('.dp-showstationFrom .dp-st-circle');
   if (dpShowFromEl) dpShowFromEl.textContent = currentStationDisplay;
 
