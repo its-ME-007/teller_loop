@@ -1047,6 +1047,11 @@ def maintenance_air_divert(station_id):
     mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": action, "power": power}))
     return jsonify({"status": "sent", "action": action, "power": power}), 200
 
+@app.route('/api/maintenance/stop/<int:station_id>', methods=['POST'])
+def maintenance_stop(station_id):
+    mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": "stop"}))
+    return jsonify({"status": "sent", "action": "stop"}), 200
+
 @app.route('/api/get_current_station/<int:station_id>', methods=['GET'])
 def get_current_station_by_id(station_id):
     return jsonify({'station_id': station_id})
