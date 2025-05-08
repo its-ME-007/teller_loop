@@ -47,6 +47,8 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => { dispatchAllowed = true; updateDispatchUI(); }, 1000);
   });
 
+
+
   socket.on('system_status_changed', function (data) {
     dispatchAllowed = !data.status;
     updateDispatchUI(data.current_dispatch);
@@ -68,8 +70,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
   socket.on('pod_availability_changed', function ({ station_id, available }) {
     if (parseInt(station_id) === currentStationNumber) {
+      const btn = document.getElementById("Dispatch-Btn");
       podAvailable = available;
       updateDispatchUI();
+      if (available===true){
+        if (!btn.classList.contains("active")) {
+          console.log("Not in Dispatch Page");
+          btn.click();
+        }
+        else{
+          console.log("Already in Dispatch Page");
+        }
+      }
+      
+            
       console.log(`Pod availability updated: ${available}`);
     }
   });
@@ -173,28 +187,28 @@ function updateDispatchUI(currentDispatch = null) {
         priorityToggle.classList.remove('disabled');
         destinationButtons.forEach(btn => btn.classList.remove('disabled'));
     }
-    let warn = document.querySelector('.dispatch-warning');
-    if (!warn) {
-      warn = document.createElement('div');
-      warn.className = 'dispatch-warning';
-      document.querySelector('.dispatch-info')?.prepend(warn);
-    }
+    //let warn = document.querySelector('.dispatch-warning');
+    //if (!warn) {
+      //warn = document.createElement('div');
+      //warn.className = 'dispatch-warning';
+      //document.querySelector('.dispatch-info')?.prepend(warn);
+    //}
 
     if (!podAvailable) {
-      warn.textContent = 'No pod available. Please place a pod in the station.';
+      //warn.textContent = 'No pod available. Please place a pod in the station.';
       slideButton.querySelector('span').textContent = 'Please Place Pod in the station';
     } else {
-      warn.textContent = 'Dispatch not available: Another dispatch is in progress';
+      //warn.textContent = 'Dispatch not available: Another dispatch is in progress';
       slideButton.querySelector('span').textContent = 'Slide to dispatch';
     }
 
-    warn.style.color = 'red';
+    //warn.style.color = 'red';
 
   } else {
     slideButton.classList.remove('disabled');
     priorityToggle.classList.remove('disabled');
     destinationButtons.forEach(btn => btn.classList.remove('disabled'));
-    document.querySelector('.dispatch-warning')?.remove();
+    //document.querySelector('.dispatch-warning')?.remove();
     slideButton.querySelector('span').textContent = 'Slide to dispatch';
   }
 }
