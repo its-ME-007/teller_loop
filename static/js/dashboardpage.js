@@ -161,6 +161,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn("Could not find .req-pod-station element!");
       }
       activeRequest = data;
+      if (typeof showdashboardpage === 'function') {
+        console.log("🔁 Redirecting to dashboard due to new pod request...");
+        showdashboardpage();
+      }
     });
     const acceptButton = document.querySelector(".accept");
 
@@ -186,6 +190,18 @@ if (acceptButton) {
     activeRequest = null; // Clear own active request
 
     showConfirmationPopup('✅ Empty Pod Request Accepted!');
+    if (typeof showdispatchpage === 'function') {
+      showdispatchpage();
+    
+      setTimeout(() => {
+          if (typeof setDispatchCircles === 'function') {
+            setDispatchCircles(acceptanceData.requesterStation, acceptanceData.acceptorStation);
+          }
+        }, 200);
+        
+      
+    }
+    
   });
 } else {
   console.log("❌ Accept button NOT found after Promise!");
@@ -222,10 +238,20 @@ if (acceptButton) {
     });
 
     socket.on('system_status_changed', function (data) {
-      const dashboardBtn = document.getElementById("Dashboard-Btn");
-      if (!dashboardBtn || !dashboardBtn.classList.contains("active")) return;
-      updateDashboardUI(data);
+      console.log("🛰️ System status changed:", data);
+    
+      // ✅ Always switch to Dashboard if dispatch starts
+      if (data.status === true && typeof showdashboardpage === 'function') {
+        console.log("🚨 Dispatch started. Switching to Dashboard...");
+        showdashboardpage();
+      }
+    
+      // Update the UI regardless of whether we switched
+      if (typeof updateDashboardUI === 'function') {
+        updateDashboardUI(data);
+      }
     });
+    
 
     socket.on('dispatch_event', function (data) {
       console.log('Dispatch event received:', data);
@@ -307,6 +333,8 @@ function updateDashboardUI(data) {
     stopArrowBlinking();
   }
 }
+
+
 
 
 

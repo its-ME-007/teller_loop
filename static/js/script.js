@@ -172,6 +172,57 @@ function toggleScreensOnClick(buttonid) {
       }
     });
   });
+  window.setDispatchCircles = function (requesterStation, acceptorStation) {
+    const fromEl = document.querySelector('.dp-showstationFrom .dp-st-circle'); // LEFT
+    const toEl = document.getElementById('dp-showtostation');                   // RIGHT
+    const stationNumberEl = document.getElementById('dp-to-station-number');
+    const stationNameEl = document.getElementById('dp-to-station-name');
+  
+    const formatDisplay = (station) => {
+      if (!station) return '';
+      return 'P' + station.split('-').pop();
+    };
+  
+    const sender = formatDisplay(acceptorStation);     // this station
+    const receiver = formatDisplay(requesterStation);  // requested one
+  
+    const receiverNumber = parseInt(requesterStation.split('-').pop());
+  
+    // ✅ VISUAL UPDATE
+    if (fromEl) fromEl.textContent = sender;
+    if (toEl) {
+      toEl.textContent = receiver;
+      toEl.style.setProperty("border", "3.5px solid #32B34B", "important");
+    }
+  
+    if (stationNumberEl) {
+      stationNumberEl.textContent = receiver;
+      stationNumberEl.style.color = "#32B34B";
+      stationNumberEl.style.border = "2px solid #32B34B";
+    }
+  
+    if (stationNameEl) stationNameEl.textContent = requesterStation;
+  
+    // ✅ FUNCTIONAL UPDATE: make dispatch work
+    if (typeof selectedDestination !== 'undefined') {
+      selectedDestination = {
+        id: receiverNumber,
+        displayId: receiver,
+        name: requesterStation
+      };
+      console.log("✅ selectedDestination set:", selectedDestination);
+    } else {
+      console.warn("❌ selectedDestination not defined globally.");
+    }
+  
+    console.log(`✅ Dispatch Circles updated: ${sender} → ${receiver}`);
+  };
+  
+  
+  
+  
+  
+  
 
   
   
