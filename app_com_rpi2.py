@@ -29,9 +29,9 @@ station_heartbeats = defaultdict(float)
 HEARTBEAT_TIMEOUT = 30 
 system_status = False 
 
-# Priority Queue for dispatches
-normal_queue = deque()
-high_priority_queue = deque()
+# # Priority Queue for dispatches
+# normal_queue = deque()
+# high_priority_queue = deque()
 dispatch_in_progress = False
 current_dispatch = None
 
@@ -184,21 +184,21 @@ def init_db():
         
         db.commit()
 
-def process_next_dispatch():
-    global dispatch_in_progress, current_dispatch
+# def process_next_dispatch():
+#     global dispatch_in_progress, current_dispatch
     
-    if dispatch_in_progress:
-        return
-    if high_priority_queue:
-        dispatch_data = high_priority_queue.popleft()
-        dispatch_in_progress = True
-        current_dispatch = dispatch_data
-        execute_dispatch(dispatch_data)
-    elif normal_queue:
-        dispatch_data = normal_queue.popleft()
-        dispatch_in_progress = True
-        current_dispatch = dispatch_data
-        execute_dispatch(dispatch_data)
+#     if dispatch_in_progress:
+#         return
+    # if high_priority_queue:
+    #     dispatch_data = high_priority_queue.popleft()
+    #     dispatch_in_progress = True
+    #     current_dispatch = dispatch_data
+    #     execute_dispatch(dispatch_data)
+    # elif normal_queue:
+    #     dispatch_data = normal_queue.popleft()
+    #     dispatch_in_progress = True
+    #     current_dispatch = dispatch_data
+    #     execute_dispatch(dispatch_data)
 
 def execute_dispatch(dispatch_data):
     from_id = dispatch_data['from']
@@ -291,6 +291,8 @@ def execute_dispatch(dispatch_data):
         mqtt.publish(f"{mqtt_status_topic_pub_1}{i}", status_message)
  
         socketio.emit('status', status, room=str(i))
+        
+# use socket to handle the mqtt messages and send them to the clients for temporary maintenance fixes
 
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
@@ -301,7 +303,6 @@ def handle_mqtt_message(client, userdata, message):
         
         # Handle different types of messages based on topic
         if topic.startswith('PTS/SENSORDATA/'):
-            # Get station ID from topic
             station_id = topic.split('/')[-1]
             # Forward to Socket.IO clients
             socketio.emit('mqtt_message', {'topic': topic, 'data': data}, room=str(station_id))
@@ -430,7 +431,7 @@ def handle_dispatch_completed(data):
         current_dispatch = None
         
         # Process next dispatch if any
-        process_next_dispatch()
+        # process_next_dispatch()
         
         # Update status for all stations
         for i in range(1, 5):  # Assuming stations 1 to 4
@@ -575,27 +576,27 @@ def handle_dispatch(data):
     }
     
     # Add to appropriate queue
-    if priority.lower() == 'high':
-        high_priority_queue.append(dispatch_data)
-        logger.info(f"Added to high priority queue. Queue length: {len(high_priority_queue)}")
-    else:
-        normal_queue.append(dispatch_data)
-        logger.info(f"Added to normal queue. Queue length: {len(normal_queue)}")
+    # if priority.lower() == 'high':
+    #     high_priority_queue.append(dispatch_data)
+    #     logger.info(f"Added to high priority queue. Queue length: {len(high_priority_queue)}")
+    # else:
+    #     normal_queue.append(dispatch_data)
+    #     logger.info(f"Added to normal queue. Queue length: {len(normal_queue)}")
     
     # Publish to MQTT
     dispatch_request = json.dumps(dispatch_data)
     mqtt.publish(f"{mqtt_topic_base}PRIORITY/{from_id}/{to_id}", dispatch_request)
     
     # Process next dispatch if none is in progress
-    if not dispatch_in_progress:
-        process_next_dispatch()
-    else:
+    # if not dispatch_in_progress:
+    #     process_next_dispatch()
+    # else:
         # Inform the client that the dispatch is queued
-        emit('dispatch_queued', {
-            'from': from_id,
-            'to': to_id,
-            'position': len(high_priority_queue) if priority.lower() == 'high' else len(normal_queue)
-        }, room=str(from_id))
+        # emit('dispatch_queued', {
+        #     'from': from_id,
+        #     'to': to_id,
+        #     'position': len(high_priority_queue) if priority.lower() == 'high' else len(normal_queue)
+        # }, room=str(from_id))
 
 @socketio.on('sensor_data')
 def handle_sensor_data(data):
