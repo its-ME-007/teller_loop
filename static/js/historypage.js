@@ -43,8 +43,62 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
     
-    // Download (Placeholder Function)
+    // Download functionality
     document.getElementById("download-btn").addEventListener("click", function() {
-        alert("Download feature coming soon!");
+        // Fetch the full history data from the server
+        fetch('/api/download_history')
+            .then(response => response.json())
+            .then(data => {
+                // Log the raw data to help with debugging
+                console.log("Downloaded history data:", data);
+                
+                // Convert to CSV format
+                const csvContent = convertToCSV(data);
+                
+                // Create a download link and trigger the download
+                const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "log_history.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            })
+            .catch(error => {
+                console.error("Error downloading history:", error);
+            });
     });
+    
+    // Improved function to convert JSON to CSV
+    function convertToCSV(objArray) {
+        if (objArray.length === 0) return '';
+        
+        // Get headers from the first object
+        const headers = Object.keys(objArray[0] || {}).join(',');
+        
+        // Create rows for each object
+        const rows = objArray.map(obj => {
+            return Object.keys(obj).map(key => {
+                // Get the value for this key
+                const value = obj[key];
+                
+                // Ensure value is a string and handle null/undefined values
+                let stringValue = '';
+                if (value !== null && value !== undefined) {
+                    stringValue = String(value);
+                    
+                    // Replace hash symbols if they appear in date fields
+                    if ((key === 'date' || key === 'time') && stringValue.includes('#')) {
+                        stringValue = 'N/A'; // Replace with a more meaningful placeholder
+                    }
+                }
+                
+                // Always wrap values in quotes to handle special characters
+                return `"${stringValue.replace(/"/g, '""')}"`;
+            }).join(',');
+        });
+        
+        // Combine headers and rows
+        return headers + '\n' + rows.join('\n');
+    }
 });
