@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Welcome to Teller LOOP</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=2">
     <style>
         /* Fade-in animation */
         @keyframes fadeInAnimation {
@@ -39,6 +40,11 @@
         <img src="{{ url_for('static', filename='images/PTS_logo.svg') }}" alt="Teller Loop Logo" style="width: 300px; height: auto;">
         <h2 class="fade-in" style="font-family: 'Jost', sans-serif; margin-top: 20px;">Pneumatic Tube System</h2>
     </div>
-
+    <script>
+        window.addEventListener('gesturestart', e => e.preventDefault());
+        window.addEventListener('gesturechange', e => e.preventDefault());
+        window.addEventListener('gestureend', e => e.preventDefault());
+      </script>
+      
 </body>
 </html>

@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Station Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=2">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/keypasspage.css') }}">
 </head>
 
@@ -73,6 +74,10 @@
     </form>
 
     <script src="{{ url_for('static', filename='js/station_login.js') }}"></script>
-
+    <script>
+        window.addEventListener('gesturestart', e => e.preventDefault());
+        window.addEventListener('gesturechange', e => e.preventDefault());
+        window.addEventListener('gestureend', e => e.preventDefault());
+      </script>      
 </body>
 </html>

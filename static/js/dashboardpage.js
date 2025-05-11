@@ -1,7 +1,10 @@
-// Refactored dashboardpage.js to use station ID from backend instead of IP mapping
+
+let myStation = null;
+
 
 document.addEventListener('DOMContentLoaded', function() {
-  let currentStation = 'Unknown-Station';
+ 
+  let currentStation = 'Unknown-Station';  
   let currentStationDisplay = '';
   let availableStations = [];
   let activeRequest = null;
@@ -17,14 +20,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function fetchCurrentStation() {
     if (typeof STATION_ID !== 'undefined') {
-      currentStation = `passthrough-station-${STATION_ID}`;
+      myStation = `passthrough-station-${STATION_ID}`; // ✅ Set once
+      currentStation = myStation;
       currentStationDisplay = formatStationDisplay(currentStation);
       localStorage.setItem('stationUsername', currentStation);
       localStorage.setItem('stationDisplay', currentStationDisplay);
       return Promise.resolve(currentStation);
     } else {
       console.warn('STATION_ID not defined. Falling back to passthrough-station-1');
-      currentStation = 'passthrough-station-1';
+      myStation = 'passthrough-station-1';
+      currentStation = myStation;
       currentStationDisplay = formatStationDisplay(currentStation);
       return Promise.resolve(currentStation);
     }
@@ -47,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   
 
-  function startArrowBlinking() {
+  window.startArrowBlinking=function() {
     const arrows = document.querySelectorAll('.arrow');
     if (arrowBlinkInterval || arrows.length === 0) return;
 
@@ -64,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500);
   }
 
-  function stopArrowBlinking() {
+  window.stopArrowBlinking=function() {
     const arrows = document.querySelectorAll('.arrow');
     if (arrowBlinkInterval) {
       clearInterval(arrowBlinkInterval);
@@ -332,6 +337,27 @@ function updateDashboardUI(data) {
     
     stopArrowBlinking();
   }
+  setTimeout(() => {
+    const abortBtn = document.querySelector('.abort-button');
+    if (!abortBtn) {
+      console.warn("❌ Abort button not found");
+      return;
+    }
+  
+    const fullSender = `passthrough-station-${data.sender}`;
+    const isSender = fullSender === myStation;
+    const isActive = data.system_status === true;
+  
+    console.log("🧠 MyStation:", myStation);
+    console.log("📦 Sender from data:", fullSender);
+    console.log("🧪 Show Abort?", isSender && isActive);
+  
+    abortBtn.style.display = (isSender && isActive) ? 'flex' : 'none';
+  }, 300);
+  
+  
+  
+  
 }
 
 
