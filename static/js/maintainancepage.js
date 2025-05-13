@@ -269,3 +269,104 @@ function updateMaintenanceUI(currentDispatch = null) {
         mt_slideButton.querySelector('span').textContent = 'Slide to self-test';
     }
 }
+
+
+function initStatusBoxInteractions() {
+    // Add ripple effect to all status boxes
+    const statusBoxes = document.querySelectorAll('.mt-indx-status-box, .mt-status-box');
+    
+    statusBoxes.forEach(box => {
+        // Add tooltip to show clickable functionality
+        const tooltip = document.createElement('span');
+        tooltip.className = 'status-tooltip';
+        tooltip.textContent = 'Click to trigger';
+        box.appendChild(tooltip);
+        
+        // Add click handler with ripple effect
+        box.addEventListener('click', function(e) {
+            // Create ripple element
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            this.appendChild(ripple);
+            
+            // Position the ripple
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = `${size}px`;
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+            
+            // Remove the ripple after animation completes
+            setTimeout(() => ripple.remove(), 600);
+            
+            // Toggle active state
+            this.classList.toggle('active');
+            
+            // Get box ID and sensor ID to determine action
+            const boxId = this.id;
+            const sensorId = this.querySelector('.mt-indx-indicator, .indicator').id;
+            
+            // Trigger the appropriate action based on the box clicked
+            triggerStatusAction(boxId, sensorId);
+        });
+    });
+}
+
+function triggerStatusAction(boxId, sensorId) {
+    // Determine the action to take based on the box ID and sensor ID
+    console.log(`Button clicked: ${boxId}, Sensor: ${sensorId}`);
+    
+    // Map of actions based on ID prefixes
+    const actions = {
+        'idx-status': {
+            action: 'indexing',
+            S1: 'load',
+            S2: 'passthrough',
+            S3: 'arrive',
+            S4: 'drop'
+        },
+        'status': {
+            action: 'podsensing',
+            P1: 'newpod',
+            P2: 'podarrive',
+            P3: 'inpassthrough',
+            P4: 'inbuffer'
+        }
+    };
+    
+    // Determine action type from box ID prefix
+    let actionType = null;
+    let actionName = null;
+    
+    for (const prefix in actions) {
+        if (boxId.startsWith(prefix)) {
+            actionType = actions[prefix].action;
+            actionName = actions[prefix][sensorId];
+            break;
+        }
+    }
+    
+    if (actionType && actionName) {
+        // Send the action to the server via fetch API
+        fetch(`/api/maintenance/${actionType}/${STATION_ID}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: actionName })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Action triggered:', data);
+            showNotification(`${actionName.charAt(0).toUpperCase() + actionName.slice(1)} action triggered`, 'success');
+        })
+        .catch(error => {
+            console.error('Error triggering action:', error);
+            showNotification('Failed to trigger action', 'error');
+        });
+    }
+    
+    // Keep the original sensor light behavior intact
+    // The actual sensor light state is controlled by the MQTT messages in your existing code
+}

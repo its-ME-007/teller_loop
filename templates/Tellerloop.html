@@ -155,7 +155,7 @@
                 </div>
 
             </div>
-
+            <!-- MODIFIED MT-CARD-INDEXING-STATUS SECTION -->
             <div class="mt-card-indexing-status">
                 <div class="mt-card-icon">
                     <img src="{{ url_for('static', filename='images/indexingIconsvg.svg') }}" alt="PodIcon">
@@ -163,27 +163,32 @@
                 <div class="mt-card-info">
                     <span class="mt-text-podtest">Indexing and inching </span>
                     <div class="mt-indx-status-container">
-                        <div class="mt-indx-status-box" id="idx-status1">
+                        <!-- Added role="button" and tabindex attributes for accessibility -->
+                        <div class="mt-indx-status-box" id="idx-status1" role="button" tabindex="0" aria-label="Trigger Load">
                             <span id="S1" class="mt-indx-indicator green"></span>
                             <span class="mt-indx-status-text">Load</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
-                        <div class="mt-indx-status-box" id="idx-status3">
+                        <div class="mt-indx-status-box" id="idx-status3" role="button" tabindex="0" aria-label="Trigger Pass through">
                             <span id="S2" class="mt-indx-indicator gray"></span>
                             <span class="mt-indx-status-text">Pass through</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
-                        <div class="mt-indx-status-box" id="idx-status2">
+                        <div class="mt-indx-status-box" id="idx-status2" role="button" tabindex="0" aria-label="Trigger Arrive">
                             <span id="S3" class="mt-indx-indicator gray"></span>
                             <span class="mt-indx-status-text">Arrive</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
-                        <div class="mt-indx-status-box" id="idx-status4">
+                        <div class="mt-indx-status-box" id="idx-status4" role="button" tabindex="0" aria-label="Trigger Drop">
                             <span id="S4" class="mt-indx-indicator gray"></span>
                             <span class="mt-indx-status-text">Drop</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
                     </div>
                 </div>
-
             </div>
 
+            <!-- MODIFIED MT-CARD-PODMOVEMENT SECTION -->
             <div class="mt-card-podmovement">
                 <div class="mt-card-icon">
                     <img src="{{ url_for('static', filename='images/podmovementIcon1.svg') }}" alt="PodIcon">
@@ -192,27 +197,30 @@
                 <div class="mt-card-info">
                     <span class="mt-text-podtest">Pod movement sensing</span>
                     <div class="mt-status-container">
-                        <div class="mt-status-box" id="status1">
+                        <!-- Added role="button" and tabindex attributes for accessibility -->
+                        <div class="mt-status-box" id="status1" role="button" tabindex="0" aria-label="Trigger New Pod">
                             <span id="P1" class="indicator green"></span>
                             <span class="status-text">New Pod</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
-                        <div class="mt-status-box" id="status2">
+                        <div class="mt-status-box" id="status2" role="button" tabindex="0" aria-label="Trigger Pod Arrive">
                             <span id="P2" class="indicator gray"></span>
                             <span class="status-text">Pod Arrive</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
-                        <div class="mt-status-box" id="status3">
+                        <div class="mt-status-box" id="status3" role="button" tabindex="0" aria-label="Trigger In Pass Through">
                             <span id="P3" class="indicator green"></span>
                             <span class="status-text">In Pass Through</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
-                        <div class="mt-status-box" id="status4">
+                        <div class="mt-status-box" id="status4" role="button" tabindex="0" aria-label="Trigger In Buffer">
                             <span id="P4" class="indicator gray"></span>
                             <span class="status-text">In Buffer</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
                     </div>
                 </div>
-
             </div>
-
             <div class="mt-card-airdivert">
                 <div class="mt-card-airdivert-1">
                     <div class="mt-card-icon">
