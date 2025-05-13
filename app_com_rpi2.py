@@ -44,7 +44,7 @@ STATION_IDS = {
 }
 
 # MQTT Configuration
-mqtt_broker_ip = "192.168.90.200"
+mqtt_broker_ip = "localhost"  # ✅ for local Mosquitto broker
 mqtt_broker_port = 1883
 mqtt_username = "oora"
 mqtt_password = "oora"
@@ -112,7 +112,9 @@ topics_to_subscribe = [
         (mqtt_ack_topic_sub, 1),
         (mqtt_script_topic_sub, 1)
     ]
-mqtt.subscribe(topics_to_subscribe)
+for topic, qos in topics_to_subscribe:
+    mqtt.subscribe(topic, qos) 
+#mqtt.subscribe(topics_to_subscribe)
 # Subscribe to MQTT topics
 @mqtt.on_connect()
 def handle_mqtt_connect(client, userdata, flags, rc):
@@ -126,7 +128,9 @@ def handle_mqtt_connect(client, userdata, flags, rc):
         (mqtt_ack_topic_sub, 1),
         (mqtt_script_topic_sub, 1)
     ]
-    mqtt.subscribe(topics_to_subscribe)
+    for topic, qos in topics_to_subscribe:
+        mqtt.subscribe(topic, qos) 
+    #mqtt.subscribe(topics_to_subscribe)
     logger.info(f"Subscribed to topics: {', '.join(t[0] for t in topics_to_subscribe)}")
 
 @mqtt.on_disconnect()
@@ -382,8 +386,11 @@ def handle_mqtt_message(client, userdata, message):
             
             try:
                 ack_data = json.loads(data)
-                if ack_data.get('type') == 'dispatch_completed':
+                if ack_data.get('type') == 'receive_completed':
                     handle_dispatch_completed(ack_data)
+                elif ack_data.get('type') == 'receive_completed':
+                    logger.info(f"Receiver ACK received for Task {ack_data.get('task_id')}")
+                    socketio.emit('receiver_ack_completed', ack_data) 
             except json.JSONDecodeError:
                 logger.warning(f"Invalid JSON format in acknowledgment: {data}")
                 
@@ -723,11 +730,29 @@ def is_pod_available(station_id):
 @app.route('/')
 def home():
     return render_template('home.html')  # Load the Tellerloop page
+station_passwords = {
+    1: "1111",
+    2: "2222",
+    3: "3333",
+    4: "4444"
+}
 
 @app.route('/<int:page_id>', methods=['GET', 'POST'])
 def handle_page(page_id):
-     
-    return render_template('Tellerloop.html', page_id=page_id)
+    if page_id not in station_passwords:
+        return render_template('404.html'), 404
+
+    if request.method == 'POST':
+        entered_pin = request.form.get('pin')
+        correct_pin = station_passwords[page_id]
+
+        if entered_pin == correct_pin:
+            return render_template('Tellerloop.html', page_id=page_id,version=int(time.time()))
+        else:
+            return render_template('station_login.html', page_id=page_id, error="Incorrect PIN")
+
+    return render_template('station_login.html', page_id=page_id)
+
 
 #purely for testing, remove in deployment
 @app.route('/api/set_sensor_status/<station_id>/<sensor_5_status>', methods=['POST'])
@@ -758,7 +783,6 @@ def set_sensor_status(station_id, sensor_5_status):
 def check_pod_available(station_id):
     return jsonify({'available': is_pod_available(station_id)})
 
-# can be kept on a separate file
 @app.route('/api/network_architecture')
 def get_network_architecture():
     try:
@@ -848,6 +872,33 @@ def get_live_tracking():
             'receiver': None,
             'task_id': None
         })
+    
+@app.route('/api/get_sensor_data/<station_id>',methods = ["POST"])
+def get_sensor_data(station_id):
+    db = get_db()
+    rows = db.execute(
+        'SELECT * FROM sensor_data WHERE station_id = ? ORDER BY timestamp DESC LIMIT 50',
+        (station_id,)
+    ).fetchall()
+    
+    # Convert to list of dictionaries
+    result = []
+    for row in rows:
+        result.append({
+            'id': row['id'],
+            'station_id': row['station_id'],
+            'sensor_1': bool(row['sensor_1']),
+            'sensor_2': bool(row['sensor_2']),
+            'sensor_3': bool(row['sensor_3']),
+            'sensor_4': bool(row['sensor_4']),
+            'sensor_5': bool(row['sensor_5']),
+            'sensor_6': bool(row['sensor_6']),
+            'sensor_7': bool(row['sensor_7']),
+            'sensor_8': bool(row['sensor_8']),
+            'timestamp': row['timestamp']
+        })
+    
+    return jsonify(result)
 
 @app.route('/get_logs')
 def get_logs():
@@ -1030,58 +1081,6 @@ def maintenance_stop(station_id):
 def get_current_station_by_id(station_id):
     return jsonify({'station_id': station_id})
 
-@app.route('/api/download_history', methods=['GET'])
-def download_history():  # Removed the station_id parameter as it's not used in the function
-    db = get_db()
-    rows = db.execute(
-        'SELECT * FROM history ORDER BY timestamp DESC'
-    ).fetchall()
-
-    result = []
-    for row in rows:
-        try:
-            # Parse the timestamp safely
-            date_str = ''
-            time_str = ''
-            if row['timestamp']:
-                try:
-                    date_obj = datetime.strptime(row['timestamp'], '%Y-%m-%d %H:%M:%S')
-                    date_str = date_obj.strftime('%d/%m/%y')
-                    time_str = date_obj.strftime('%H:%M')
-                except ValueError:
-                    # If timestamp is in a different format, try another common format
-                    try:
-                        date_obj = datetime.strptime(row['timestamp'], '%Y-%m-%dT%H:%M:%S')
-                        date_str = date_obj.strftime('%d/%m/%y')
-                        time_str = date_obj.strftime('%H:%M')
-                    except ValueError:
-                        # If still can't parse, use raw value
-                        date_str = str(row['timestamp']).split(' ')[0] if ' ' in str(row['timestamp']) else str(row['timestamp'])
-                        time_str = str(row['timestamp']).split(' ')[1] if ' ' in str(row['timestamp']) else ''
-            
-            result.append({
-                'task_id': row['task_id'],
-                'from': row['sender'],
-                'to': row['receiver'],
-                'priority': row['priority'],
-                'date': date_str,
-                'time': time_str
-            })
-        except Exception as e:
-            # Log the error but continue processing other rows
-            print(f"Error processing row {row['task_id']}: {str(e)}")
-            # Add the row with error indication
-            result.append({
-                'task_id': row['task_id'],
-                'from': row['sender'],
-                'to': row['receiver'],
-                'priority': row['priority'],
-                'date': 'error',
-                'time': 'error'
-            })
-    
-    return jsonify(result)
-
 @socketio.on('request_empty_pod')
 def handle_empty_pod_request(data):
     requester_station = data.get('requesterStation', 'Unknown')
@@ -1113,4 +1112,4 @@ def handle_empty_pod_request_accepted(data):
     
 if __name__ == '__main__':
     init_db()
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=80, debug=True)

@@ -72,20 +72,20 @@ document.addEventListener("DOMContentLoaded", function () {
   socket.on('pod_availability_changed', function ({ station_id, available }) {
     if (parseInt(station_id) === currentStationNumber) {
       const btn = document.getElementById("Dispatch-Btn");
+      console.log("Active button",getActiveButton());
+      console.log("System State",state);
       podAvailable = available;
       updateDispatchUI();
-      if (available===true){
-        if (!btn.classList.contains("active")) {
-          console.log("Not in Dispatch Page");
+      if (getActiveButton()!="Dispatch-Btn" && getActiveButton()!="Maintainance-Btn")
+      { 
+      if (available===true && state == "standby"){
           btn.click();
-        }
-        else{
-          console.log("Already in Dispatch Page");
+          console.log(`Pod availability updated: ${available}`);
         }
       }
-      
-            
-      console.log(`Pod availability updated: ${available}`);
+      else{
+      console.log("Pod Data Received but Ignored..!!"); 
+    } 
     }
   });
 

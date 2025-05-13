@@ -104,6 +104,7 @@ function toggleScreensOnClick(buttonid) {
     hideallelements();
     db_content.style.display = 'flex';
     db_request.style.display = 'flex';
+    setActiveNav("Dashboard");
   
     fetch('/api/live_tracking')
       .then(response => response.json())
@@ -125,11 +126,13 @@ function toggleScreensOnClick(buttonid) {
     checkDispatchPermission();
     checkPodAvailability();
     dp_container.style.display = 'flex';
+    setActiveNav("Dispatch");
   }
 
   function showhistorypage(){
     hideallelements();
     history_container.style.display = 'flex';
+    setActiveNav("History");
   }
 
   function showkeypasspage(){
@@ -147,11 +150,13 @@ function toggleScreensOnClick(buttonid) {
   function showmaintainancepage(){
     hideallelements();
     maintainance_container.style.display = 'flex';
+    setActiveNav("Maintainance");
   }
 
   function showcleardatapage(){
     hideallelements();
     cleardata_container.style.display = 'flex';
+    setActiveNav("Clear Data");
   }
 
   function getActiveButton() {
@@ -163,13 +168,9 @@ function toggleScreensOnClick(buttonid) {
   }
   document.addEventListener("DOMContentLoaded", function () {
     const socket = io(); // Ensure socket is connected after DOM is ready
-  
-    socket.on('system_status_changed', function (data) {
-      console.log("system_status_changed received:", data);
-      if (data.status === false) {
-        console.log("Dispatch completed. Redirecting to Dispatch Page...");
-        showdispatchpage();
-      }
+    socket.on('receiver_ack_completed', function (data) {
+      console.log("✅ Receiver ACK received:", data);
+      showdispatchpage();  // ✅ Redirect to dispatch page only after receiver ACK
     });
   });
   window.setDispatchCircles = function (requesterStation, acceptorStation) {
@@ -217,6 +218,15 @@ function toggleScreensOnClick(buttonid) {
   
     console.log(`✅ Dispatch Circles updated: ${sender} → ${receiver}`);
   };
+  function setActiveNav(pageName) {
+    const buttons = document.querySelectorAll('.nav-button');
+    buttons.forEach(btn => btn.classList.remove('active'));
+  
+    const targetBtn = document.getElementById(`${pageName}-Btn`);
+    if (targetBtn) {
+      targetBtn.classList.add('active');
+    }
+  }
   
   
   

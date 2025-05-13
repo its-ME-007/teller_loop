@@ -146,13 +146,11 @@
 .mt-index-button-container {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     background-color: #0066ff;
     border-radius: 34px;
     width: 272px;
-    height: 50px;
-    padding: 0 10px;
-    gap: 10px;
+    height:50px;
+    justify-content: space-between;
 }
 
 .mt-side-button {
@@ -163,21 +161,6 @@
     cursor: pointer;
     flex: 1;
     justify-content: center;
-}
-
-.mt-end-button {
-    background: white;
-    color: red;
-    font-weight: bold;
-    font-size: 14px;
-    border: none;
-    border-radius: 34px;
-    width: 85px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
 }
 
 .mt-side-button span{
@@ -237,6 +220,8 @@
     color: black;
     margin-right: 10px;
 }
+
+
 
 .mt-indx-status-container {
     display: flex;
@@ -320,3 +305,76 @@ input[type="range"]::-webkit-slider-thumb {
     text-align: right;
 }
 
+.mt-end-button {
+    background: white;
+    color: red;
+    font-weight: bold;
+    font-size: 14px;
+    border: none;
+    border-radius: 34px;
+    width: 85px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+#mt-slideToDispatch.disabled {
+    opacity: 1;
+    cursor: not-allowed;
+    pointer-events: none;
+    background-color: #C0C0C0;
+}
+
+#mt-slideToDispatch.disabled span {
+    color: black;
+}
+
+/* Notification styles for maintenance page */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    color: white;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.notification.success {
+    background-color: #32B34B;
+}
+
+.notification.error {
+    background-color: #FF3B30;
+}
+
+.notification.info {
+    background-color: #007AFF;
+}
+
+#slideToDispatch.disabled {
+    opacity: 1; /* keep it full visible */
+    cursor: not-allowed;
+    pointer-events: none;
+    background-color: #C0C0C0; /* light grey */
+}
+  
+#slideToDispatch.disabled span {
+    color: black; /* dark text for better contrast */
+}
+
+#slideToDispatch.disabled .dp-slide-arrow {
+    fill: grey !important;
+}
+
+#slideToDispatch.disabled .slide-icon {
+    color: grey; /* Grey text for the slide icon */
+}
+
+#slideToDispatch.disabled svg path {
+    fill: grey !important; /* Grey fill for any SVG paths */
+}
