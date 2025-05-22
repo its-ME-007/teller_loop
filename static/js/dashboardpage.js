@@ -1,6 +1,9 @@
-// Refactored dashboardpage.js to use station ID from backend instead of IP mapping
 
-document.addEventListener('DOMContentLoaded', function() {
+let myStation = null;
+
+
+document.addEventListener('DOMContentLoaded', function () {
+
   let currentStation = 'Unknown-Station';
   let currentStationDisplay = '';
   let availableStations = [];
@@ -17,14 +20,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function fetchCurrentStation() {
     if (typeof STATION_ID !== 'undefined') {
-      currentStation = `passthrough-station-${STATION_ID}`;
+      myStation = `passthrough-station-${STATION_ID}`; // ✅ Set once
+      currentStation = myStation;
       currentStationDisplay = formatStationDisplay(currentStation);
       localStorage.setItem('stationUsername', currentStation);
       localStorage.setItem('stationDisplay', currentStationDisplay);
       return Promise.resolve(currentStation);
     } else {
       console.warn('STATION_ID not defined. Falling back to passthrough-station-1');
-      currentStation = 'passthrough-station-1';
+      myStation = 'passthrough-station-1';
+      currentStation = myStation;
       currentStationDisplay = formatStationDisplay(currentStation);
       return Promise.resolve(currentStation);
     }
@@ -45,9 +50,9 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
 
-  
 
-  function startArrowBlinking() {
+
+  window.startArrowBlinking = function () {
     const arrows = document.querySelectorAll('.arrow');
     if (arrowBlinkInterval || arrows.length === 0) return;
 
@@ -64,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500);
   }
 
-  function stopArrowBlinking() {
+  window.stopArrowBlinking = function () {
     const arrows = document.querySelectorAll('.arrow');
     if (arrowBlinkInterval) {
       clearInterval(arrowBlinkInterval);
@@ -112,9 +117,9 @@ document.addEventListener('DOMContentLoaded', function() {
     popupDiv.appendChild(okButton);
     document.body.appendChild(popupDiv);
   }
-  
 
-    const socket = io.connect(window.location.origin, {
+
+  const socket = io.connect(window.location.origin, {
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionAttempts: 10
@@ -142,17 +147,17 @@ document.addEventListener('DOMContentLoaded', function() {
       const requestId = `${currentStation}-${Date.now()}`;
       const requestData = {
         requestId: requestId,
-        requesterStation:currentStation,
+        requesterStation: currentStation,
         timestamp: Date.now()
       };
-     socket.emit('request_empty_pod', requestData);
+      socket.emit('request_empty_pod', requestData);
       showConfirmationPopup('Empty Pod Request Sent Successfully!');
     });
 
-    socket.on('empty_pod_request', function(data) {
+    socket.on('empty_pod_request', function (data) {
       const fromStation = data.requesterStation;
       const stationNumber = fromStation.split('-').pop(); // gets '1' from 'passthrough-station-1'
-    
+
       const requestCircle = document.querySelector('.req-pod-station');
       if (requestCircle) {
         requestCircle.textContent = stationNumber;
@@ -168,70 +173,71 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     const acceptButton = document.querySelector(".accept");
 
-if (acceptButton) {
-  console.log("✅ Accept button found after Promise, adding listener.");
+    if (acceptButton) {
+      console.log("✅ Accept button found after Promise, adding listener.");
 
-  acceptButton.addEventListener('click', function () {
-    if (!activeRequest) return; // Check if request is there
+      acceptButton.addEventListener('click', function () {
+        if (!activeRequest) return; // Check if request is there
 
-    const acceptanceData = {
-      requestId: activeRequest.requestId,
-      requesterStation: activeRequest.requesterStation,
-      acceptorStation: currentStation
-    };
+        const acceptanceData = {
+          requestId: activeRequest.requestId,
+          requesterStation: activeRequest.requesterStation,
+          acceptorStation: currentStation
+        };
 
-    socket.emit('empty_pod_request_accepted', acceptanceData); // Emit event to server
+        socket.emit('empty_pod_request_accepted', acceptanceData); // Emit event to server
 
-    const requestCircle = document.querySelector('.req-pod-station');
-    if (requestCircle) {
-      requestCircle.textContent = '';  // 🔥 Clear the circle on Accept
+        const requestCircle = document.querySelector('.req-pod-station');
+        if (requestCircle) {
+          requestCircle.textContent = '';  // 🔥 Clear the circle on Accept
+        }
+
+        activeRequest = null; // Clear own active request
+
+        showConfirmationPopup('✅ Empty Pod Request Accepted!');
+        if (typeof showdispatchpage === 'function') {
+          showdispatchpage();
+
+          setTimeout(() => {
+            if (typeof setDispatchCircles === 'function') {
+              setDispatchCircles(acceptanceData.requesterStation, acceptanceData.acceptorStation);
+            }
+          }, 200);
+
+
+        }
+
+      });
+    } else {
+      console.log("❌ Accept button NOT found after Promise!");
     }
 
-    activeRequest = null; // Clear own active request
+    //NEW FUCNTION FOR OTEHR STATIOSN REQUEST CARD
+    socket.on('empty_pod_request_accepted', function (data) {
+      const requestCircle = document.querySelector('.req-pod-station');
+      if (requestCircle) {
+        requestCircle.textContent = ''; // 🔥 Clear the circle on all stations
+      }
 
-    showConfirmationPopup('✅ Empty Pod Request Accepted!');
-    if (typeof showdispatchpage === 'function') {
-      showdispatchpage();
-    
-      setTimeout(() => {
-          if (typeof setDispatchCircles === 'function') {
-            setDispatchCircles(acceptanceData.requesterStation, acceptanceData.acceptorStation);
-          }
-        }, 200);
-        
-      
-    }
-    
-  });
-} else {
-  console.log("❌ Accept button NOT found after Promise!");
-}
+      activeRequest = null; // 🔥 Reset activeRequest on all stations
 
-  //NEW FUCNTION FOR OTEHR STATIOSN REQUEST CARD
-  socket.on('empty_pod_request_accepted', function (data) {
-    const requestCircle = document.querySelector('.req-pod-station');
-    if (requestCircle) {
-      requestCircle.textContent = ''; // 🔥 Clear the circle on all stations
-    }
-  
-    activeRequest = null; // 🔥 Reset activeRequest on all stations
-  
-    if (data.requesterStation === currentStation) {
-      showConfirmationPopup(`✅ Your Request was Accepted by ${data.acceptorStation}`);
-    }
-  });
-  
-    
-    socket.on('station_dispatch_started', function(data) {
+      if (data.requesterStation === currentStation) {
+        showConfirmationPopup(`✅ Your Request was Accepted by ${data.acceptorStation}`);
+      }
+    });
+
+
+    socket.on('station_dispatch_started', function (data) {
       console.log("Dispatch triggered by station", data.from);
-      if (typeof showdashboardpage === 'function') showdashboardpage();
+      if (typeof showdashboardpage === 'function') 
+        showdashboardpage();
       const abortButton = document.querySelector('.abort-button');
     });
-    
+
     socket.on('connect', function () {
       console.log('Dashboard connected to Socket.IO server');
     });
-    
+
 
     socket.on('connect_error', function (error) {
       console.error('Socket.IO connection error:', error);
@@ -239,24 +245,24 @@ if (acceptButton) {
 
     socket.on('system_status_changed', function (data) {
       console.log("🛰️ System status changed:", data);
-    
+
       // ✅ Always switch to Dashboard if dispatch starts
       if (data.status === true && typeof showdashboardpage === 'function') {
         console.log("🚨 Dispatch started. Switching to Dashboard...");
         showdashboardpage();
       }
-    
+
       // Update the UI regardless of whether we switched
       if (typeof updateDashboardUI === 'function') {
         updateDashboardUI(data);
       }
     });
-    
+
 
     socket.on('dispatch_event', function (data) {
       console.log('Dispatch event received:', data);
       updateDashboardUI(data);
-    
+
     });
   });
 });
@@ -276,11 +282,11 @@ function updateDashboardUI(data) {
   const taskSpan = document.querySelector('.movement-disp .taskid');
   const dbContent = document.getElementById('db-content-id');
   const liveTracking = document.querySelector('.live-tracking');
-  console.log("Upadting dahsboard UI with system status:",systemStatus,"sender",sender,"reciever",receiver,"taskid",taskId);
+  console.log("Upadting dahsboard UI with system status:", systemStatus, "sender", sender, "reciever", receiver, "taskid", taskId);
   // Only update UI if we're on the dashboard page
   const dashboardBtn = document.getElementById("Dashboard-Btn");
- // if (!dashboardBtn || !dashboardBtn.classList.contains("active")) {
- //   console.log("INISIDE !DASHBOARD");
+  // if (!dashboardBtn || !dashboardBtn.classList.contains("active")) {
+  //   console.log("INISIDE !DASHBOARD");
   //  return;
   //}
 
@@ -290,14 +296,14 @@ function updateDashboardUI(data) {
     if (fromCircle) fromCircle.textContent = (sender || '');
     if (toCircle) toCircle.textContent = (receiver || '');
     if (taskSpan) taskSpan.textContent = 'Task ID: ' + (taskId || '');
-    
+
     if (standbyInfo) standbyInfo.style.display = 'none';
     if (trackingInfo) trackingInfo.style.display = 'flex';
     if (liveTracking) liveTracking.style.display = 'flex';
     if (dbContent) dbContent.style.display = 'flex';
-    
+
     startArrowBlinking();
-    
+
     // Fetch history if sender/receiver info is incomplete
     if ((!sender || !receiver) && systemStatus) {
       setTimeout(() => {
@@ -320,7 +326,7 @@ function updateDashboardUI(data) {
     if (fromCircle) fromCircle.textContent = '';
     if (toCircle) toCircle.textContent = '';
     if (taskSpan) taskSpan.textContent = 'Task ID: ';
-    
+
     if (trackingInfo) trackingInfo.style.display = 'none';
     if (standbyInfo) standbyInfo.style.display = 'flex';
     if (liveTracking) {
@@ -329,9 +335,30 @@ function updateDashboardUI(data) {
       liveTracking.style.gap = '0';
     }
     if (dbContent) dbContent.style.gap = '20px';
-    
+
     stopArrowBlinking();
   }
+  setTimeout(() => {
+    const abortBtn = document.querySelector('.abort-button');
+    if (!abortBtn) {
+      console.warn("❌ Abort button not found");
+      return;
+    }
+
+    const fullSender = `passthrough-station-${data.sender}`;
+    const isSender = fullSender === myStation;
+    const isActive = data.system_status === true;
+
+    console.log("🧠 MyStation:", myStation);
+    console.log("📦 Sender from data:", fullSender);
+    console.log("🧪 Show Abort?", isSender && isActive);
+
+    abortBtn.style.display = (isSender && isActive) ? 'flex' : 'none';
+  }, 300);
+
+
+
+
 }
 
 

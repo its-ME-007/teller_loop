@@ -1,5 +1,3 @@
-
-
 .history-container {
     display:none;
     width:600px;
@@ -39,6 +37,18 @@
     margin-top: 1px;;
 }
 
+.download-button {
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.download-button img {
+    width: 12px;
+    height: 12px;
+}
+
 input[type="radio"] {
     width: 18px; /* Make the radio button bigger */
     height: 18px;
@@ -66,7 +76,8 @@ button {
 
 .table-container {
     max-height: 330px;  /* Scrollable area */
-    width:522px;
+    width: 100%;
+    max-width: 100%;
     overflow-y: auto;
     border-radius: 5px;
     position: fixed;

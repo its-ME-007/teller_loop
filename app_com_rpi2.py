@@ -44,10 +44,10 @@ STATION_IDS = {
 }
 
 # MQTT Configuration
-mqtt_broker_ip = "192.168.90.200"
+mqtt_broker_ip = "localhost"  # ✅ for local Mosquitto broker
 mqtt_broker_port = 1883
-mqtt_username = "oora"
-mqtt_password = "oora"
+mqtt_username = ""
+mqtt_password = ""
 
 # MQTT Topics
 
@@ -60,6 +60,7 @@ mqtt_status_topic_sub = mqtt_topic_base + 'STATUS/#'
 mqtt_priority_topic_sub = mqtt_topic_base + 'PRIORITY/#'
 mqtt_ack_topic_sub = mqtt_topic_base + 'ACK/#'
 mqtt_script_topic_sub = mqtt_topic_base + 'SCRIPT/#'
+mqtt_mtn_topic_sub = mqtt_topic_base + 'MTN/#'
 
 # Topics for publishing (without wildcards)
 mqtt_sensor_data_topic_pub = mqtt_topic_base + 'SENSORDATA/'
@@ -110,7 +111,8 @@ topics_to_subscribe = [
         (mqtt_status_topic_sub, 1),
         (mqtt_priority_topic_sub, 1),
         (mqtt_ack_topic_sub, 1),
-        (mqtt_script_topic_sub, 1)
+        (mqtt_script_topic_sub, 1),
+        (mqtt_mtn_topic_sub, 1)
     ]
 mqtt.subscribe(topics_to_subscribe)
 # Subscribe to MQTT topics
@@ -382,15 +384,18 @@ def handle_mqtt_message(client, userdata, message):
             
             try:
                 ack_data = json.loads(data)
-                if ack_data.get('type') == 'dispatch_completed':
+                if ack_data.get('type') == 'receive_completed':
                     handle_dispatch_completed(ack_data)
+                elif ack_type == 'receive_completed':
+                    logger.info(f"Receiver ACK received for Task {ack_data.get('task_id')}")
+                    socketio.emit('receiver_ack_completed', ack_data)  # 🔥 NEW EMIT to frontend
             except json.JSONDecodeError:
                 logger.warning(f"Invalid JSON format in acknowledgment: {data}")
                 
     except Exception as e:
         logger.error(f"MQTT message processing error: {e}")
 
-@socketio.on('dispatch_completed')
+@socketio.on('receive_completed')
 def handle_dispatch_completed(data):
     global dispatch_in_progress, current_dispatch
     
@@ -723,11 +728,30 @@ def is_pod_available(station_id):
 @app.route('/')
 def home():
     return render_template('home.html')  # Load the Tellerloop page
+station_passwords = {
+    0: "0000",
+    1: "1111",
+    2: "2222",
+    3: "3333",
+    4: "4444"
+}
 
 @app.route('/<int:page_id>', methods=['GET', 'POST'])
 def handle_page(page_id):
-     
-    return render_template('Tellerloop.html', page_id=page_id)
+    if page_id not in station_passwords:
+        return render_template('404.html'), 404
+
+    if request.method == 'POST':
+        entered_pin = request.form.get('pin')
+        correct_pin = station_passwords[page_id]
+
+        if entered_pin == correct_pin:
+            return render_template('Tellerloop.html', page_id=page_id)
+        else:
+            return render_template('station_login.html', page_id=page_id, error="Incorrect PIN")
+
+    return render_template('station_login.html', page_id=page_id)
+
 
 #purely for testing, remove in deployment
 @app.route('/api/set_sensor_status/<station_id>/<sensor_5_status>', methods=['POST'])

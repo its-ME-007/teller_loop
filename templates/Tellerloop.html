@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Teller Loop UI</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=2">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dispatchpage.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/historypage.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/maintainancepage.css') }}">
@@ -38,10 +39,12 @@
                 <img src="{{ url_for('static', filename='images/TellerLoopScLogo.svg') }}" alt="Teller Loop Logo">
             </div>
             <nav>
+                {% if page_id != 0 %}
                 <button id="Dispatch-Btn" class="nav-button active">
                     <img src="{{ url_for('static', filename='images/DispatchIcon.svg') }}" alt="Dispatch Icon">
                     Dispatch
                 </button>
+                {% endif %}
                 <button id="Dashboard-Btn" class="nav-button">
                     <img src="{{ url_for('static', filename='images/DashboardIcon.svg') }}" alt="Dashboard Icon">
                     Dashboard</button>
@@ -60,7 +63,7 @@
             </nav>
         </aside>
 
-        <div id="dispatch-container-id" class="dispatch-container">
+        <div id="dispatch-container-id" class="dispatch-container" {% if page_id == 0 %}style="display: none;"{% endif %}>
             <div class="dp-selecttxt">Select Destination</div>
             <div class="dp-destination-list" id="dp-destinationList">
                 <!-- Dynamic Destination Buttons Here -->
@@ -242,8 +245,18 @@
                     </div>
                 </div>
             </div>
-            
-            
+
+            {% if page_id == 1 %}
+            <div class="mt-redirect-container">
+                <h3 class="mt-redirect-heading">Navigate to</h3>
+                <div class="mt-redirect-buttons">
+                    <button class="mt-redirect-btn" onclick="window.location.href='/2'">Station 2</button>
+                    <button class="mt-redirect-btn" onclick="window.location.href='/3'">Station 3</button>
+                    <button class="mt-redirect-btn" onclick="window.location.href='/4'">Station 4</button>
+                    <button class="mt-redirect-btn" onclick="window.location.href='/5'">Station 5</button>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <div id="cleardata-container-id" class="cleardata-container">
@@ -364,13 +377,14 @@
                 <div class="request-card">
                     <span>Request Empty <br> Pod </span>
                     <img src="{{ url_for('static', filename='images/podicon.svg') }}" alt="Pod Icon">
-                    <button class="send-button">Send</button>
+                    <button class="send-button" {% if page_id == 0 %}disabled{% endif %}>Send</button>
                 </div>
                 <div class="requested-card">
                     <span>Empty Pod <br> Request from</span>
                     <div class="req-pod-station"></div>
-                    <button class="accept">Accept</button>
+                    <button class="accept" {% if page_id == 0 %}disabled{% endif %}>Accept</button>
                 </div>
+                {% if page_id != 0 %}
                 <div class="pass-through">
                     <div class="pass-through-status"></div>
                     <div class="pass-through-text"> 
@@ -378,6 +392,7 @@
                         <span>Pass through</span> 
                     </div>
                 </div>
+                {% endif %}
             </section>
         </main>
 
@@ -397,7 +412,7 @@
                     <input type="checkbox" id="toggleSwitch">
                     <span class="slider"></span>
                 </label>
-                <button id="download-btn" class="download-button">
+                <button id="download-btn" class="download-button" {% if page_id != 1 %}style="display: none;"{% endif %}>
                     <img src="{{ url_for('static', filename='images/DownloadIcon.svg') }}" alt="ScreenLock Icon">
                     Download</button>
             </div>
@@ -443,6 +458,8 @@
 
     </div>
     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="{{ url_for('static', filename='js/dispatchpage.js') }}"></script>
     <script src="{{ url_for('static', filename='js/historypage.js') }}"></script>
     <script src="{{ url_for('static', filename='js/maintainancepage.js') }}"></script>
@@ -450,5 +467,22 @@
     <script src="{{ url_for('static', filename='js/keypasspage.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dashboardpage.js') }}"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        window.addEventListener('gesturestart', e => e.preventDefault());
+        window.addEventListener('gesturechange', e => e.preventDefault());
+        window.addEventListener('gestureend', e => e.preventDefault());
+    </script>
+    <script>
+        if (STATION_ID === 0) {
+            // Admin station: Hide Dispatch container and activate Dashboard
+            document.getElementById('dispatch-container-id').style.display = 'none';
+            document.getElementById('db-content-id').style.display = 'block';
+            document.getElementById('Dashboard-Btn').classList.add('active');
+            setTimeout(() => {
+            document.getElementById('Dashboard-Btn').dispatchEvent(new Event('click'));
+            }, 300); 
+        }
+    </script>
+
 </body>
 </html>
