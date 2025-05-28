@@ -20,14 +20,15 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('Broker')
 
+# Suppress Werkzeug logs
+logging.getLogger('werkzeug').setLevel(logging.WARNING)
+
 # Global variables for tracking
-heartbeat_threads = {}
 connected_stations = {}  # username -> ip
 station_sids = {}  # username -> sid
 sid_stations = {}  # sid -> username
 station_heartbeats = defaultdict(float) 
 HEARTBEAT_TIMEOUT = 30 
-system_status = False 
 
 # Priority Queue for dispatches
 normal_queue = deque()
@@ -133,14 +134,14 @@ def handle_mqtt_connect(client, userdata, flags, rc):
 
 @mqtt.on_disconnect()
 def handle_disconnect(client, userdata, rc):
-    print(f"[MQTT] Disconnected from broker with result code: {rc}")
+    logger.info(f"[MQTT] Disconnected from broker with result code: {rc}")
     if rc == 0:
-        print("Disconnected gracefully.")
+        logger.info("Disconnected gracefully.")
     else:
-        print("Unexpected disconnect! Possible causes:")
-        print("- Broker rejected the connection (bad credentials, client ID conflict, etc.)")
-        print("- Network error")
-        print("- Callback crashed")
+        logger.info("Unexpected disconnect! Possible causes:")
+        logger.info("- Broker rejected the connection (bad credentials, client ID conflict, etc.)")
+        logger.info("- Network error")
+        logger.info("- Callback crashed")
 
 def get_db():
     conn = sqlite3.connect(DATABASE)
@@ -346,7 +347,7 @@ def handle_mqtt_message(client, userdata, message):
                     db.commit()
                     #mapped_data = map_sensor_data(sensor_data)
                     sensor_5 = mapped_data.get('P1', False)
-                    print("Emitting Sensor 5:",sensor_5)
+                    logger.info(f"Emitting Pod Availability: {not sensor_5} for station {station_id}")
                     socketio.emit('pod_availability_changed', {
                     'station_id': station_id,
                     'available': not sensor_5
@@ -386,7 +387,7 @@ def handle_mqtt_message(client, userdata, message):
                 ack_data = json.loads(data)
                 if ack_data.get('type') == 'receive_completed':
                     handle_dispatch_completed(ack_data)
-                elif ack_type == 'receive_completed':
+                elif ack_data.get('type') == 'receive_completed':
                     logger.info(f"Receiver ACK received for Task {ack_data.get('task_id')}")
                     socketio.emit('receiver_ack_completed', ack_data)  # 🔥 NEW EMIT to frontend
             except json.JSONDecodeError:
@@ -673,7 +674,7 @@ def cleanup_inactive_stations():
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print("Client disconnected")
+    logger.info("Client disconnected")
     sid = request.sid
     station_id = sid_stations.get(sid)
 
@@ -796,22 +797,22 @@ def get_network_architecture():
         with open(latest_file, 'r') as json_file:
             data = json.load(json_file)
         # Debug: Check keys present in the JSON file
-        print("Loaded JSON data keys:", data.keys())
+        logger.debug(f"Loaded JSON data keys: {data.keys()}")
         
         # Process the components from the JSON file
         components = data.get('components', [])
-        print(f"Found {len(components)} components in JSON file.")
+        logger.debug(f"Found {len(components)} components in JSON file.")
         db = get_db()
         
         for component in components:
             comp_type = component.get('type')  # Use the correct key for type
             comp_id = component.get('id')      # Use the correct key for id
-            print(f"Component details: type={comp_type}, id={comp_id}")
+            logger.debug(f"Component details: type={comp_type}, id={comp_id}")
             
             if comp_type in ['passthrough-station', 'bottom-loading-station']:
                 if comp_id:
                     table_name = f"component_{comp_id}"
-                    print(f"Creating table for component id: {comp_id}, table name: {table_name}")
+                    logger.debug(f"Creating table for component id: {comp_id}, table name: {table_name}")
                     db.execute(f'''
                         CREATE TABLE IF NOT EXISTS "{table_name}" (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -826,11 +827,11 @@ def get_network_architecture():
                         )
                     ''')
                 else:
-                    print("Skipping component due to missing id.")
+                    logger.debug("Skipping component due to missing id.")
             else:
-                print("Skipping component due to type mismatch.")
+                logger.debug("Skipping component due to type mismatch.")
         db.commit()
-        print("Component tables creation committed.")
+        logger.debug("Component tables creation committed.")
         
         return jsonify(data)
     except FileNotFoundError:
@@ -1093,7 +1094,7 @@ def download_history():  # Removed the station_id parameter as it's not used in 
             })
         except Exception as e:
             # Log the error but continue processing other rows
-            print(f"Error processing row {row['task_id']}: {str(e)}")
+            logger.error(f"Error processing row {row['task_id']}: {str(e)}")
             # Add the row with error indication
             result.append({
                 'task_id': row['task_id'],
