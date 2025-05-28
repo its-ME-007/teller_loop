@@ -6,6 +6,12 @@
     position: fixed;
     transform: translate(200px, 0px);
 }
+.noselect {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
 .filters{
     position: fixed;
     transform: translate(42px, 36px);

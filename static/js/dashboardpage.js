@@ -232,6 +232,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (typeof showdashboardpage === 'function') 
         showdashboardpage();
       const abortButton = document.querySelector('.abort-button');
+      
     });
 
     socket.on('connect', function () {

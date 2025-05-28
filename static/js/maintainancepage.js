@@ -1,4 +1,3 @@
-
 let mt_isSliding = false;
 window.STATION_ID = window.STATION_ID || 1;
 const mt_slideButton = document.getElementById("mt-slideToDispatch");
@@ -56,7 +55,6 @@ function startMaintenanceSlide(event) {
     document.addEventListener("touchmove", moveMaintenanceSlide);
     document.addEventListener("touchend", endMaintenanceSlide);
 }
-
 document.addEventListener("DOMContentLoaded", function () {
     const mt_airSlider = document.getElementById("mt-air-slider");
     const mt_airPercentage = document.getElementById("mt-air-percentage");
@@ -65,7 +63,8 @@ document.addEventListener("DOMContentLoaded", function () {
         mt_airPercentage.textContent = mt_airSlider.value + "%";
     });
 
-    document.querySelectorAll('.mt-side-button').forEach(btn => {
+    // Fixed selector syntax - using comma inside the string
+    document.querySelectorAll('.mt-side-button, .mt-end-button').forEach(btn => {
         btn.addEventListener('click', function () {
             const label = this.innerText.trim().toLowerCase();
             if (label === 'left' || label === 'right') {
@@ -81,6 +80,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: label, power })
+                });
+            } else if (label == 'stop') {
+                fetch(`/api/maintenance/stop/${STATION_ID}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action:'stop'})
                 });
             }
         });

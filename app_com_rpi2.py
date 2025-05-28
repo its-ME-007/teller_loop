@@ -782,6 +782,7 @@ def set_sensor_status(station_id, sensor_5_status):
 def check_pod_available(station_id):
     return jsonify({'available': is_pod_available(station_id)})
 
+# can be kept on a separate file
 @app.route('/api/network_architecture')
 def get_network_architecture():
     try:
@@ -871,33 +872,6 @@ def get_live_tracking():
             'receiver': None,
             'task_id': None
         })
-    
-@app.route('/api/get_sensor_data/<station_id>',methods = ["POST"])
-def get_sensor_data(station_id):
-    db = get_db()
-    rows = db.execute(
-        'SELECT * FROM sensor_data WHERE station_id = ? ORDER BY timestamp DESC LIMIT 50',
-        (station_id,)
-    ).fetchall()
-    
-    # Convert to list of dictionaries
-    result = []
-    for row in rows:
-        result.append({
-            'id': row['id'],
-            'station_id': row['station_id'],
-            'sensor_1': bool(row['sensor_1']),
-            'sensor_2': bool(row['sensor_2']),
-            'sensor_3': bool(row['sensor_3']),
-            'sensor_4': bool(row['sensor_4']),
-            'sensor_5': bool(row['sensor_5']),
-            'sensor_6': bool(row['sensor_6']),
-            'sensor_7': bool(row['sensor_7']),
-            'sensor_8': bool(row['sensor_8']),
-            'timestamp': row['timestamp']
-        })
-    
-    return jsonify(result)
 
 @app.route('/get_logs')
 def get_logs():
@@ -1079,6 +1053,58 @@ def maintenance_stop(station_id):
 @app.route('/api/get_current_station/<int:station_id>', methods=['GET'])
 def get_current_station_by_id(station_id):
     return jsonify({'station_id': station_id})
+
+@app.route('/api/download_history', methods=['GET'])
+def download_history():  # Removed the station_id parameter as it's not used in the function
+    db = get_db()
+    rows = db.execute(
+        'SELECT * FROM history ORDER BY timestamp DESC'
+    ).fetchall()
+
+    result = []
+    for row in rows:
+        try:
+            # Parse the timestamp safely
+            date_str = ''
+            time_str = ''
+            if row['timestamp']:
+                try:
+                    date_obj = datetime.strptime(row['timestamp'], '%Y-%m-%d %H:%M:%S')
+                    date_str = date_obj.strftime('%d/%m/%y')
+                    time_str = date_obj.strftime('%H:%M')
+                except ValueError:
+                    # If timestamp is in a different format, try another common format
+                    try:
+                        date_obj = datetime.strptime(row['timestamp'], '%Y-%m-%dT%H:%M:%S')
+                        date_str = date_obj.strftime('%d/%m/%y')
+                        time_str = date_obj.strftime('%H:%M')
+                    except ValueError:
+                        # If still can't parse, use raw value
+                        date_str = str(row['timestamp']).split(' ')[0] if ' ' in str(row['timestamp']) else str(row['timestamp'])
+                        time_str = str(row['timestamp']).split(' ')[1] if ' ' in str(row['timestamp']) else ''
+            
+            result.append({
+                'task_id': row['task_id'],
+                'from': row['sender'],
+                'to': row['receiver'],
+                'priority': row['priority'],
+                'date': date_str,
+                'time': time_str
+            })
+        except Exception as e:
+            # Log the error but continue processing other rows
+            print(f"Error processing row {row['task_id']}: {str(e)}")
+            # Add the row with error indication
+            result.append({
+                'task_id': row['task_id'],
+                'from': row['sender'],
+                'to': row['receiver'],
+                'priority': row['priority'],
+                'date': 'error',
+                'time': 'error'
+            })
+    
+    return jsonify(result)
 
 @socketio.on('request_empty_pod')
 def handle_empty_pod_request(data):
