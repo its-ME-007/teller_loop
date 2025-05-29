@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger('Broker')
 
 # Suppress Werkzeug logs
-logging.getLogger('werkzeug').setLevel(logging.WARNING)
+# logging.getLogger('werkzeug').setLevel(logging.WARNING)
 
 # Global variables for tracking
 connected_stations = {}  # username -> ip
