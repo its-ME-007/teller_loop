@@ -1051,6 +1051,24 @@ def maintenance_stop(station_id):
     mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": "stop"}))
     return jsonify({"status": "sent", "action": "stop"}), 200
 
+@app.route('/api/maintenance/indexing/<int:station_id>', methods=['POST'])
+def maintenance_indexing(station_id):
+    action = request.json.get('action')
+    if not action:
+        return jsonify({"error": "Action not provided"}), 400
+    mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": action}))
+    logger.info(f"Indexing action received for station {station_id}: {action}")
+    return jsonify({"status": "sent", "action": action}), 200
+
+@app.route('/api/maintenance/podsensing/<int:station_id>', methods=['POST'])
+def maintenance_podsensing(station_id):
+    action = request.json.get('action')
+    if not action:
+        return jsonify({"error": "Action not provided"}), 400
+    mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": action}))
+    logger.info(f"Pod sensing action received for station {station_id}: {action}")
+    return jsonify({"status": "sent", "action": action}), 200
+
 @app.route('/api/get_current_station/<int:station_id>', methods=['GET'])
 def get_current_station_by_id(station_id):
     return jsonify({'station_id': station_id})

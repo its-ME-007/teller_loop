@@ -2,17 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Teller Loop UI</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=2">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dispatchpage.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/historypage.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/maintainancepage.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/cleardatapage.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/keypasspage.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v={{ version }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dispatchpage.css') }}?v={{ version }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/historypage.css') }}?v={{ version }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/maintainancepage.css') }}?v={{ version }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cleardatapage.css') }}?v={{ version }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/keypasspage.css') }}?v={{ version }}">
     <script>
-        const STATION_ID = {{ page_id }};
+        window.STATION_ID = {{ page_id }};
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
@@ -166,25 +165,28 @@
                 <div class="mt-card-info">
                     <span class="mt-text-podtest">Indexing and inching </span>
                     <div class="mt-indx-status-container">
-                        <div class="mt-indx-status-box" id="idx-status1">
-                            <span class="mt-indx-indicator green"></span>
+                        <div class="mt-indx-status-box" id="idx-status1" role="button" tabindex="0" aria-label="Trigger Load">
+                            <span id="S1" class="mt-indx-indicator green"></span>
                             <span class="mt-indx-status-text">Load</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
-                        <div class="mt-indx-status-box" id="idx-status2">
-                            <span class="mt-indx-indicator gray"></span>
-                            <span class="mt-indx-status-text">Arrive</span>
-                        </div>
-                        <div class="mt-indx-status-box" id="idx-status3">
-                            <span class="mt-indx-indicator gray"></span>
+                        <div class="mt-indx-status-box" id="idx-status3" role="button" tabindex="0" aria-label="Trigger Pass through">
+                            <span id="S2" class="mt-indx-indicator gray"></span>
                             <span class="mt-indx-status-text">Pass through</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
-                        <div class="mt-indx-status-box" id="idx-status4">
-                            <span class="mt-indx-indicator gray"></span>
+                        <div class="mt-indx-status-box" id="idx-status2" role="button" tabindex="0" aria-label="Trigger Arrive">
+                            <span id="S3" class="mt-indx-indicator gray"></span>
+                            <span class="mt-indx-status-text">Arrive</span>
+                            <span class="status-tooltip">Click to trigger</span>
+                        </div>
+                        <div class="mt-indx-status-box" id="idx-status4" role="button" tabindex="0" aria-label="Trigger Drop">
+                            <span id="S4" class="mt-indx-indicator gray"></span>
                             <span class="mt-indx-status-text">Drop</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <div class="mt-card-podmovement">
@@ -195,25 +197,28 @@
                 <div class="mt-card-info">
                     <span class="mt-text-podtest">Pod movement sensing</span>
                     <div class="mt-status-container">
-                        <div class="mt-status-box" id="status1">
-                            <span class="indicator green"></span>
+                        <div class="mt-status-box" id="status1" role="button" tabindex="0" aria-label="Trigger New Pod">
+                            <span id="P1" class="indicator green"></span>
                             <span class="status-text">New Pod</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
-                        <div class="mt-status-box" id="status2">
-                            <span class="indicator gray"></span>
+                        <div class="mt-status-box" id="status2" role="button" tabindex="0" aria-label="Trigger Pod Arrive">
+                            <span id="P2" class="indicator gray"></span>
                             <span class="status-text">Pod Arrive</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
-                        <div class="mt-status-box" id="status3">
-                            <span class="indicator green"></span>
+                        <div class="mt-status-box" id="status3" role="button" tabindex="0" aria-label="Trigger In Pass Through">
+                            <span id="P3" class="indicator green"></span>
                             <span class="status-text">In Pass Through</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
-                        <div class="mt-status-box" id="status4">
-                            <span class="indicator gray"></span>
+                        <div class="mt-status-box" id="status4" role="button" tabindex="0" aria-label="Trigger In Buffer">
+                            <span id="P4" class="indicator gray"></span>
                             <span class="status-text">In Buffer</span>
+                            <span class="status-tooltip">Click to trigger</span>
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <div class="mt-card-airdivert">
@@ -460,26 +465,26 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <script src="{{ url_for('static', filename='js/dispatchpage.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/historypage.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/maintainancepage.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/cleardatapage.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/keypasspage.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/dashboardpage.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dispatchpage.js') }}?v={{ version }}"></script>
+    <script src="{{ url_for('static', filename='js/historypage.js') }}?v={{ version }}"></script>
+    <script src="{{ url_for('static', filename='js/maintainancepage.js') }}?v={{ version }}"></script>
+    <script src="{{ url_for('static', filename='js/cleardatapage.js') }}?v={{ version }}"></script>
+    <script src="{{ url_for('static', filename='js/keypasspage.js') }}?v={{ version }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboardpage.js') }}?v={{ version }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}?v={{ version }}"></script>
     <script>
         window.addEventListener('gesturestart', e => e.preventDefault());
         window.addEventListener('gesturechange', e => e.preventDefault());
         window.addEventListener('gestureend', e => e.preventDefault());
     </script>
     <script>
-        if (STATION_ID === 0) {
+        if (window.STATION_ID === 0) {
             // Admin station: Hide Dispatch container and activate Dashboard
             document.getElementById('dispatch-container-id').style.display = 'none';
             document.getElementById('db-content-id').style.display = 'block';
             document.getElementById('Dashboard-Btn').classList.add('active');
             setTimeout(() => {
-            document.getElementById('Dashboard-Btn').dispatchEvent(new Event('click'));
+                document.getElementById('Dashboard-Btn').dispatchEvent(new Event('click'));
             }, 300); 
         }
     </script>
