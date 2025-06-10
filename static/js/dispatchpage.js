@@ -28,12 +28,21 @@ document.addEventListener("DOMContentLoaded", function () {
     reconnectionDelay: 1000,
     reconnectionAttempts: 10
   });
-
+  let wasDisconnected = false;
   socket.on('connect', function () {
     console.log('Connected to Socket.IO server');
+    if (wasDisconnected) {
+    console.log('🔄 Reconnected — refreshing page...');
+    location.reload(); // Full page refresh
+  }
     socket.emit('join', { station_id: currentStationNumber });
     checkDispatchPermission();
     checkPodAvailability();
+  });
+
+  socket.on('disconnect', () => {
+    console.log("⚠️ Socket disconnected");
+    wasDisconnected = true; // Flag that we were disconnected
   });
     
   socket.on('dispatch_queued', function (data) {
@@ -69,23 +78,43 @@ document.addEventListener("DOMContentLoaded", function () {
     showNotification(`Task ${data.task_id} completed!`, 'success');
   });
 
+  // socket.on('pod_availability_changed', function ({ station_id, available }) {
+  //   if (parseInt(station_id) === currentStationNumber) {
+  //     const btn = document.getElementById("Dispatch-Btn");
+  //     podAvailable = available;
+  //     updateDispatchUI();
+  //     if (available===true){
+  //       if (!btn.classList.contains("active")) {
+  //         console.log("Not in Dispatch Page");
+  //         btn.click();
+  //       }
+  //       else{
+  //         console.log("Already in Dispatch Page");
+  //       }
+  //     }
+      
+            
+  //     console.log(`Pod availability updated: ${available}`);
+  //   }
+  // });
+  
   socket.on('pod_availability_changed', function ({ station_id, available }) {
     if (parseInt(station_id) === currentStationNumber) {
       const btn = document.getElementById("Dispatch-Btn");
+      console.log("Active button",getActiveButton());
+      console.log("System State",state);
       podAvailable = available;
       updateDispatchUI();
-      if (available===true){
-        if (!btn.classList.contains("active")) {
-          console.log("Not in Dispatch Page");
+      if (getActiveButton()!="Dispatch-Btn" && getActiveButton()!="Maintainance-Btn")
+      { 
+      if (available===true && state == "standby"){
           btn.click();
-        }
-        else{
-          console.log("Already in Dispatch Page");
+          console.log(`Pod availability updated: ${available}`);
         }
       }
-      
-            
-      console.log(`Pod availability updated: ${available}`);
+      else{
+      console.log("Pod Data Received but Ignored..!!"); 
+    } 
     }
   });
 

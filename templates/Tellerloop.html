@@ -14,7 +14,7 @@
         window.STATION_ID = {{ page_id }};
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
 </head>
 <body>
     <!-- 🚚 Dispatch Status Banner -->

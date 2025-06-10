@@ -45,10 +45,10 @@ STATION_IDS = {
 }
 
 # MQTT Configuration
-mqtt_broker_ip = "localhost"  # ✅ for local Mosquitto broker
+mqtt_broker_ip = "192.168.90.3"  # ✅ for local Mosquitto broker
 mqtt_broker_port = 1883
-mqtt_username = ""
-mqtt_password = ""
+mqtt_username = "oora"
+mqtt_password = "oora"
 
 # MQTT Topics
 
@@ -115,7 +115,10 @@ topics_to_subscribe = [
         (mqtt_script_topic_sub, 1),
         (mqtt_mtn_topic_sub, 1)
     ]
-mqtt.subscribe(topics_to_subscribe)
+for topic, qos in topics_to_subscribe:
+        mqtt.subscribe(topic, qos)
+
+#mqtt.subscribe(topics_to_subscribe)
 # Subscribe to MQTT topics
 @mqtt.on_connect()
 def handle_mqtt_connect(client, userdata, flags, rc):
@@ -129,7 +132,9 @@ def handle_mqtt_connect(client, userdata, flags, rc):
         (mqtt_ack_topic_sub, 1),
         (mqtt_script_topic_sub, 1)
     ]
-    mqtt.subscribe(topics_to_subscribe)
+    for topic, qos in topics_to_subscribe:
+        mqtt.subscribe(topic, qos)
+    #mqtt.subscribe(topics_to_subscribe)
     logger.info(f"Subscribed to topics: {', '.join(t[0] for t in topics_to_subscribe)}")
 
 @mqtt.on_disconnect()
@@ -249,7 +254,7 @@ def execute_dispatch(dispatch_data):
             'task_id': task_id
         }
         sender_script_msg = json.dumps({
-            'script': 'inching.py',  # Changed from dispatch_handler.py
+            'script': 'Tellerloop_sw.py',  # Changed from dispatch_handler.py
             'params': sender_params,
             'task_id': task_id
         })
@@ -262,7 +267,7 @@ def execute_dispatch(dispatch_data):
             'task_id': task_id
         }
         receiver_script_msg = json.dumps({
-            'script': 'inching.py',  # Changed from dispatch_handler.py
+            'script': 'Tellerloop_sw.py',  # Changed from dispatch_handler.py
             'params': receiver_params,
             'task_id': task_id
         })
@@ -300,6 +305,7 @@ def handle_mqtt_message(client, userdata, message):
     try:
         data = message.payload.decode()
         topic = message.topic
+        print(f"MQTT message received: {topic} -> {data}")
         logger.info(f"MQTT message received: {topic} -> {data}")
         
         # Handle different types of messages based on topic
@@ -396,7 +402,7 @@ def handle_mqtt_message(client, userdata, message):
     except Exception as e:
         logger.error(f"MQTT message processing error: {e}")
 
-@socketio.on('receive_completed')
+@socketio.on('dispatch_completed')
 def handle_dispatch_completed(data):
     global dispatch_in_progress, current_dispatch
     
@@ -1156,4 +1162,4 @@ def handle_empty_pod_request_accepted(data):
     
 if __name__ == '__main__':
     init_db()
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=80, debug=True)

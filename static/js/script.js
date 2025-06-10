@@ -168,6 +168,23 @@ function toggleScreensOnClick(buttonid) {
   }
   document.addEventListener("DOMContentLoaded", function () {
     const socket = io(); // Ensure socket is connected after DOM is ready
+
+    let wasDisconnected = false;
+
+  socket.on('disconnect', () => {
+    console.warn("⚠️ Socket disconnected");
+    wasDisconnected = true; // Flag that we were disconnected
+  });
+
+  socket.on('connect', () => {
+    console.log("✅ Socket connected");
+    if (wasDisconnected) {
+      // Reconnected after a disconnection
+      console.log("🔄 Reconnected — refreshing page...");
+      location.reload(); // Refresh the page
+    }
+  });
+  
     socket.on('receiver_ack_completed', function (data) {
       console.log("✅ Receiver ACK received:", data);
       showdispatchpage();  // ✅ Redirect to dispatch page only after receiver ACK
