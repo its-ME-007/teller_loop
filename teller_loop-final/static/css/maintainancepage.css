@@ -1,0 +1,494 @@
+/* Main Container */
+.maintainance-container {
+    display: none;
+    flex-direction: column;
+    width: 600px;
+    height: 480px;
+    overflow-y: auto;
+}
+
+/* Card Layouts */
+.mt-card-selftest {
+    display: flex;
+    width: 542px;
+    min-height: 130px;
+    background: black;
+    margin-left: 15px;
+    margin-top: 15px;
+    border-radius: 15px;
+    gap: 30px;
+    align-items: center;
+}
+
+.mt-card-indexing {
+    display: flex;
+    width: 542px;
+    min-height: 130px;
+    background: black;
+    margin-left: 15px;
+    margin-top: 15px;
+    border-radius: 15px;
+    gap: 30px;
+    align-items: center;
+}
+
+.mt-card-indexing-status {
+    display: flex;
+    width: 542px;
+    min-height: 130px;
+    background: black;
+    margin-left: 15px;
+    margin-top: 15px;
+    border-radius: 15px;
+    gap: 30px;
+    align-items: center;
+}
+
+.mt-card-podmovement {
+    display: flex;
+    width: 542px;
+    min-height: 130px;
+    background: black;
+    margin-left: 15px;
+    margin-top: 15px;
+    border-radius: 15px;
+    gap: 30px;
+    align-items: center;
+}
+
+.mt-card-airdivert {
+    display: flex;
+    flex-direction: column;
+    width: 542px;
+    min-height: 208px;
+    background: black;
+    margin-left: 15px;
+    margin-top: 15px;
+    border-radius: 15px;
+    align-items: center;
+}
+
+.mt-card-airdivert-1 {
+    display: flex;
+    flex-direction: row;
+    width: 542px;
+    height: 100px;
+    gap: 30px;
+    align-items: center;
+    margin-top: 15px;
+}
+
+/* Card Components */
+.mt-power-box {
+    display: flex;
+    flex-direction: column;
+    margin-right: 40px;
+    gap: 10px;
+}
+
+.mt-card-icon {
+    width: 200px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.mt-card-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: right;
+}
+
+/* Slide Button Styles */
+.mt-slide-btn {
+    width: 272px;
+    height: 50px;
+    background: #32B34B;
+    border-radius: 34px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    user-select: none;
+}
+
+.mt-slide-btn .mt-slide-icon {
+    width: 71px;
+    height: 39px;
+    background: white;
+    border-radius: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 5px;
+    color: green;
+    font-weight: bold;
+    transition: left 0.3s;
+}
+
+.mt-slide-btn span {
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: 11px;
+    margin-left: 70px;
+}
+
+.mt-text-podtest {
+    font-size: 15px;
+    width: 272px;
+    height: 30px;
+    text-align: right;
+    margin-right: 15px;
+}
+
+/* Disabled State for Slide Button */
+#mt-slideToDispatch.disabled {
+    opacity: 1;
+    cursor: not-allowed;
+    pointer-events: none;
+    background-color: #C0C0C0;
+}
+
+#mt-slideToDispatch.disabled span {
+    color: black;
+}
+
+#slideToDispatch.disabled {
+    opacity: 1;
+    cursor: not-allowed;
+    pointer-events: none;
+    background-color: #C0C0C0;
+}
+
+#slideToDispatch.disabled span {
+    color: black;
+}
+
+#slideToDispatch.disabled .dp-slide-arrow {
+    fill: grey !important;
+}
+
+#slideToDispatch.disabled .slide-icon {
+    color: grey;
+}
+
+#slideToDispatch.disabled svg path {
+    fill: grey !important;
+}
+
+/* Button Container Styles */
+.mt-index-button-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #0066ff;
+    border-radius: 34px;
+    width: 272px;
+    height: 50px;
+    padding: 0 10px;
+    gap: 10px;
+}
+
+/* Button Styles */
+.mt-side-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    flex: 1;
+    justify-content: center;
+}
+
+.mt-side-button span {
+    text-align: center;
+}
+
+.mt-end-button {
+    background: white;
+    color: red;
+    font-weight: bold;
+    font-size: 14px;
+    border: none;
+    border-radius: 34px;
+    width: 85px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Icon Styles */
+.mt-indexicon {
+    background: white;
+    border-radius: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 71px;
+    height: 39px;
+}
+
+.mt-indexicon img {
+    width: 37px;
+    height: 22px;
+}
+
+/* Status Box Containers */
+.mt-status-container {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 10px;
+    margin-right: 20px;
+}
+
+.mt-indx-status-container {
+    display: flex;
+    gap: 10px;
+}
+
+/* Status Box Styles */
+.mt-status-box {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border-radius: 20px;
+    width: 157px;
+    height: 23px;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+.mt-indx-status-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: white;
+    border-radius: 12px;
+    padding: 10px;
+    width: 45px;
+    height: 59px;
+    justify-content: space-between;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+/* Interactive Status Box Effects */
+.mt-indx-status-box:hover, .mt-status-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.mt-indx-status-box:active, .mt-status-box:active {
+    transform: translateY(0px);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.mt-indx-status-box.active, .mt-status-box.active {
+    outline: 2px solid #32B34B;
+    background-color: rgba(50, 179, 75, 0.1);
+}
+
+/* Indicator Styles */
+.indicator {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    margin-left: 5px;
+}
+
+.mt-indx-indicator {
+    width: 35px;
+    height: 10px;
+    border-radius: 10px;
+}
+
+/* Status Colors */
+.green {
+    background-color: #28a745;
+}
+
+.gray {
+    background-color: #b0b0b0;
+}
+
+/* Status Text */
+.status-text {
+    font-size: 11px;
+    text-align: right;
+    color: black;
+    margin-right: 10px;
+}
+
+.mt-indx-status-text {
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    color: black;
+}
+
+/* Air Slider Styles */
+.mt-air-slider-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: white;
+    width: 542px;
+}
+
+.mt-air-percentage-box {
+    background-color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 73px;
+    height: 45px;
+    border-radius: 12px;
+    margin-left: 60px;
+    border: 2px solid white;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 339px;
+    height: 2px;
+    background: white;
+    border-radius: 5px;
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: blue;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.mt-air-label {
+    font-size: 14px;
+    margin-left: 10px;
+    text-align: right;
+}
+
+/* Redirect Section */
+.mt-redirect-container {
+    background: black;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 15px;
+    width: 542px;
+}
+
+.mt-redirect-heading {
+    color: white;
+    font-size: 15px;
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: normal;
+}
+
+.mt-redirect-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.mt-redirect-btn {
+    background: #0062FF;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    min-width: 100px;
+}
+
+.mt-redirect-btn:hover {
+    background: #0052cc;
+}
+
+.mt-redirect-btn:active {
+    background: #0047b3;
+}
+
+/* Notification Styles */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    color: white;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.notification.success {
+    background-color: #32B34B;
+}
+
+.notification.error {
+    background-color: #FF3B30;
+}
+
+.notification.info {
+    background-color: #007AFF;
+}
+
+/* Ripple Effect */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.7);
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* Tooltip Styles */
+.status-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    display: none;
+    z-index: 10;
+}
+
+.mt-indx-status-box:hover .status-tooltip, 
+.mt-status-box:hover .status-tooltip {
+    display: block;
+}

@@ -1,0 +1,221 @@
+{
+        "components": [
+            {
+                "id": "side-channel-blower-1",
+                "type": "side-channel-blower",
+                "x": 544,
+                "y": -34,
+                "width": 120,
+                "height": 184,
+                "priority": 0,
+                "paths": [
+                    {
+                        "targetComponent": {
+                            "id": "passthrough-station-1",
+                            "type": "passthrough-station"
+                        },
+                        "checkpoints": [],
+                        "path": [
+                            {"id": "side-channel-blower-1", "type": "side-channel-blower", "priority": 0},
+                            {"id": "passthrough-station-1", "type": "passthrough-station", "priority": 0}
+                        ],
+                        "metadata": {
+                            "isValid": true,
+                            "priority": 0,
+                            "startConnector": {
+                                "position": "bottom",
+                                "coordinates": {"x": 606, "y": 111.13751220703125}
+                            },
+                            "endConnector": {
+                                "position": "top",
+                                "coordinates": {"x": 533, "y": 159.89999389648438}
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "passthrough-station-1",
+                "type": "passthrough-station",
+                "x": 471,
+                "y": 115.5,
+                "width": 120,
+                "height": 191,
+                "priority": 0,
+                "paths": [
+                    {
+                        "targetComponent": {
+                            "id": "side-channel-blower-1",
+                            "type": "side-channel-blower"
+                        },
+                        "checkpoints": [],
+                        "path": [
+                            {"id": "passthrough-station-1", "type": "passthrough-station", "priority": 0},
+                            {"id": "side-channel-blower-1", "type": "side-channel-blower", "priority": 0}
+                        ],
+                        "metadata": {
+                            "isValid": true,
+                            "priority": 0,
+                            "startConnector": {
+                                "position": "bottom",
+                                "coordinates": {"x": 606, "y": 111.13751220703125}
+                            },
+                            "endConnector": {
+                                "position": "top",
+                                "coordinates": {"x": 533, "y": 159.89999389648438}
+                            }
+                        }
+                    },
+                    {
+                        "targetComponent": {
+                            "id": "passthrough-station-2",
+                            "type": "passthrough-station"
+                        },
+                        "checkpoints": [
+                            {
+                                "id": "checkpoint-1",
+                                "x": 588,
+                                "y": 279.1000061035156,
+                                "distances": {"fromStart": 201.13170311283687, "fromEnd": 18.94096657628082}
+                            },
+                            {
+                                "id": "checkpoint-2",
+                                "x": 596.199951171875,
+                                "y": 305.9000244140625,
+                                "distances": {"fromStart": 227.87539812431592, "fromEnd": 46.92974199371578}
+                            }
+                        ],
+                        "path": [
+                            {"id": "passthrough-station-1", "type": "passthrough-station", "priority": 0},
+                            {"id": "passthrough-station-2", "type": "passthrough-station", "priority": 0}
+                        ],
+                        "metadata": {
+                            "isValid": true,
+                            "priority": 0,
+                            "startConnector": {
+                                "position": "bottom",
+                                "coordinates": {"x": 533, "y": 266.1000061035156}
+                            },
+                            "endConnector": {
+                                "position": "top",
+                                "coordinates": {"x": 643, "y": 305.9000244140625}
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "passthrough-station-2",
+                "type": "passthrough-station",
+                "x": 581,
+                "y": 261.5,
+                "width": 120,
+                "height": 191,
+                "priority": 0,
+                "paths": [
+                    {
+                        "targetComponent": {
+                            "id": "passthrough-station-1",
+                            "type": "passthrough-station"
+                        },
+                        "checkpoints": [
+                            {
+                                "id": "checkpoint-1",
+                                "x": 588,
+                                "y": 279.1000061035156,
+                                "distances": {"fromStart": 201.13170311283687, "fromEnd": 18.94096657628082}
+                            },
+                            {
+                                "id": "checkpoint-2",
+                                "x": 596.199951171875,
+                                "y": 305.9000244140625,
+                                "distances": {"fromStart": 227.87539812431592, "fromEnd": 46.92974199371578}
+                            }
+                        ],
+                        "path": [
+                            {"id": "passthrough-station-2", "type": "passthrough-station", "priority": 0},
+                            {"id": "passthrough-station-1", "type": "passthrough-station", "priority": 0}
+                        ],
+                        "metadata": {
+                            "isValid": true,
+                            "priority": 0,
+                            "startConnector": {
+                                "position": "bottom",
+                                "coordinates": {"x": 533, "y": 266.1000061035156}
+                            },
+                            "endConnector": {
+                                "position": "top",
+                                "coordinates": {"x": 643, "y": 305.9000244140625}
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "connections": [
+            {
+                "start": {
+                    "componentId": "side-channel-blower-1",
+                    "componentType": "side-channel-blower",
+                    "x": 544,
+                    "y": -34,
+                    "connectorPosition": "bottom",
+                    "connectorX": 606,
+                    "connectorY": 111.13751220703125
+                },
+                "end": {
+                    "componentId": "passthrough-station-1",
+                    "componentType": "passthrough-station",
+                    "x": 471,
+                    "y": 115.5,
+                    "connectorPosition": "top",
+                    "connectorX": 533,
+                    "connectorY": 159.89999389648438
+                },
+                "checkpoints": []
+            },
+            {
+                "start": {
+                    "componentId": "passthrough-station-1",
+                    "componentType": "passthrough-station",
+                    "x": 471,
+                    "y": 115.5,
+                    "connectorPosition": "bottom",
+                    "connectorX": 533,
+                    "connectorY": 266.1000061035156
+                },
+                "end": {
+                    "componentId": "passthrough-station-2",
+                    "componentType": "passthrough-station",
+                    "x": 581,
+                    "y": 261.5,
+                    "connectorPosition": "top",
+                    "connectorX": 643,
+                    "connectorY": 305.9000244140625
+                },
+                "checkpoints": [
+                    {
+                        "id": "checkpoint-1",
+                        "x": 588,
+                        "y": 279.1000061035156,
+                        "distances": {"fromStart": 201.13170311283687, "fromEnd": 18.94096657628082}
+                    },
+                    {
+                        "id": "checkpoint-2",
+                        "x": 596.199951171875,
+                        "y": 305.9000244140625,
+                        "distances": {"fromStart": 227.87539812431592, "fromEnd": 46.92974199371578}
+                    }
+                ]
+            }
+        ],
+        "metadata": {
+            "globalCheckpointCounter": 2,
+            "componentCounter": {
+                "side-channel-blower": 1,
+                "passthrough-station": 2,
+                "master-control": 1
+            },
+            "connectionCounter": 0
+        }
+    }

@@ -1,0 +1,163 @@
+.keypass-container {
+    display: none;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    justify-content: space-between;
+    gap:50px;
+    width:600px;
+    height:480px;
+}
+
+/* Left Panel */
+.kp-left-panel-maintainance {
+    display:none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: white;
+    color: #0066ff;
+    font-size: 13px;
+    margin-left: 105px;
+    margin-top: 40px;
+}
+
+.kp-left-panel-cleardata {
+    display:none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: white;
+    color: #0066ff;
+    font-size: 13px;
+    margin-left: 105px;
+    margin-top: 40px;
+}
+
+.kp-clear-data {
+    color: #0066ff;
+    font-weight: bold;
+}
+
+.kp-icon {
+    width: 40px;
+    height: 40px;
+}
+.kp-btn-icon{
+
+    margin-right: 5px;
+}
+
+/* Right Panel */
+.kp-right-panel {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 50px;
+    margin-top: 20px;
+}
+
+/* PIN Display */
+.kp-pin-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 300px;
+    margin-top:20px;
+}
+
+.kp-pin-display {
+    display: flex;
+    gap: 10px;
+    margin-left: 104px;
+}
+
+.kp-pin-dot {
+    color:black;
+    font-size: 24px;
+    transition: all 0.3s ease-in-out;
+}
+
+.shake {
+    animation: shake 0.2s ease-in-out 2;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+}
+
+.kp-underline {
+    width: 203px;
+    height: 2px;
+    background: rgb(0, 0, 0);
+    margin: 10px;
+}
+
+/* Keypad */
+.kp-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 60px);
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.kp-pin_text {
+    font-size: 24px;
+    color:black;
+}
+.kp-pin-dot.error {
+    color: red;
+}
+
+.kp-key {
+    width: 56px;
+    height: 56px;
+    background: #ccc;
+    border-radius: 50%;
+    font-size: 25px;
+    font-family: 'Jost', sans-serif; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    cursor: pointer;
+    color: black;
+}
+
+.kp-key img {
+    width: 24px;
+    height: 24px;
+}
+
+.back {
+    background: black;
+    color: white;
+}
+
+.enter {
+    background: #0062FF;
+    color: white;
+}
+
+#kp-status-message {
+    font-weight: bold;
+    margin-top: 10px;
+}
+#kp-toggle-visibility {
+    background: white;
+    width:30px;
+    height:30px;
+}
+
+.kp-teller-loop-icon{
+    margin-top: 25px;
+}

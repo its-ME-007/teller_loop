@@ -1,0 +1,118 @@
+
+.cleardata-container {
+    display: none;
+    flex-direction: column;
+    width:600px;
+    height:480px;
+    overflow-y: auto;
+}
+
+.cd-card-cleardata {
+    display:flex;
+    width:542px;
+    min-height:130px;
+    background: black;
+    margin-left:15px;
+    margin-top:15px;
+    border-radius: 15px;
+    gap: 30px;
+    align-items: center;
+}
+
+.cd-card-icon{
+    width:200px;
+    height:70px;
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    gap:10px;
+}
+
+.cd-card-info{
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: right;
+}
+
+.cd-slide-btn {
+    width: 272px;
+    height: 50px;
+    background: #32B34B;
+    border-radius: 34px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    user-select: none;
+}
+
+.cd-slide-btn .cd-slide-icon {
+    width: 71px;
+    height: 39px;
+    background: white;
+    border-radius: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 5px;
+    color: green;
+    font-weight: bold;
+    transition: left 0.3s;
+}
+
+.cd-slide-btn span {
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: 11px;
+    margin-left: 70px;
+}
+
+.cd-text-podtest{
+    font-size: 15px;
+    width:272px;
+    height:30px;
+    text-align: center;
+}
+.cd-popup-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.cd-popup-box {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+    max-width: 90vw; 
+    text-align: left;
+    color: black;
+    /* Remove flex properties from here */
+}
+
+/* Add a container specifically for buttons */
+.button-container {
+    display: flex;
+    gap: 100px;
+    margin-top: 15px;
+    justify-content: center; /* or flex-start, space-between, etc. */
+}
+
+.cd-popup-box button {
+    font-size: 14px;
+    padding: 8px 16px;
+    cursor: pointer;
+    flex: 1; /* Makes buttons equal width */
+}
+
+.cd-popup-box input[type="checkbox"] {
+    margin-right: 8px;
+}

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Teller Loop UI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v={{ version }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dispatchpage.css') }}?v={{ version }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/historypage.css') }}?v={{ version }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/maintainancepage.css') }}?v={{ version }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cleardatapage.css') }}?v={{ version }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/keypasspage.css') }}?v={{ version }}">
+    <script>
+        window.STATION_ID = {{ page_id }};
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
+</head>
+<body>
+    <!-- 🚚 Dispatch Status Banner -->
+    <div id="dispatch-banner" style="
+      display: none;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: #ffc107;
+      color: black;
+      text-align: center;
+      padding: 8px 0;
+      font-weight: bold;
+      z-index: 9999;
+    ">
+      Dispatch in progress...
+    </div>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='images/TellerLoopScLogo.svg') }}" alt="Teller Loop Logo">
+            </div>
+            <nav>
+                {% if page_id != 0 %}
+                <button id="Dispatch-Btn" class="nav-button active">
+                    <img src="{{ url_for('static', filename='images/DispatchIcon.svg') }}" alt="Dispatch Icon">
+                    Dispatch
+                </button>
+                {% endif %}
+                <button id="Dashboard-Btn" class="nav-button">
+                    <img src="{{ url_for('static', filename='images/DashboardIcon.svg') }}" alt="Dashboard Icon">
+                    Dashboard</button>
+                <button id="History-Btn" class="nav-button">
+                    <img src="{{ url_for('static', filename='images/HistoryIcon.svg') }}" alt="History Icon">
+                    History</button>
+                <button id="Maintainance-Btn" class="nav-button">
+                    <img src="{{ url_for('static', filename='images/Maintainance.svg') }}" alt="Maintenance Icon">
+                    Maintenance</button>
+                <button id="ClearData-Btn" class="nav-button">
+                    <img src="{{ url_for('static', filename='images/ClearIcon.svg') }}" alt="ClearData Icon">
+                    Clear Data</button>
+                <button id="ScreenLock-Btn" class="nav-button">
+                    <img src="{{ url_for('static', filename='images/ScreenLockIcon.svg') }}" alt="ScreenLock Icon">
+                    Screen Lock</button>
+            </nav>
+        </aside>
+
+        <div id="dispatch-container-id" class="dispatch-container" {% if page_id == 0 %}style="display: none;"{% endif %}>
+            <div class="dp-selecttxt">Select Destination</div>
+            <div class="dp-destination-list" id="dp-destinationList">
+                <!-- Dynamic Destination Buttons Here -->
+            </div>
+            
+            <div class="dispatch-info">
+                <div class="dp-displaystations">
+                    <div class="dp-showstationFrom">
+                        <div class="dp-st-circle">P{{ page_id }}</div>
+                        <span>From</span>
+                      </div>                      
+                    <div class="dp-arrow-st">
+                        <svg  width="29" height="27" viewBox="0 0 29 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path class="dp-arrow" d="M8.71613 13.4705C8.55061 13.3559 8.43648 13.2989 8.35105 13.2138C5.73006 10.5858 3.11107 7.95513 0.492752 5.32447C-0.167334 4.66144 -0.165332 4.12713 0.499427 3.46009C1.41113 2.54298 2.32284 1.62654 3.23655 0.711439C3.80053 0.146291 4.38386 0.146961 4.94984 0.715461C8.90702 4.68759 12.8629 8.66106 16.8187 12.6345C17.3887 13.2071 17.3927 13.7883 16.8281 14.3548C12.8655 18.337 8.90101 22.3178 4.93649 26.298C4.38719 26.8497 3.79652 26.8484 3.24656 26.298C2.30081 25.352 1.35707 24.4041 0.415331 23.4541C-0.135297 22.899 -0.137967 22.3104 0.413328 21.7567C3.05434 19.1012 5.69802 16.4478 8.3417 13.795C8.42714 13.7078 8.52592 13.6341 8.71613 13.4705Z" fill="#32B34B"/>
+                            <path class="dp-arrow" d="M20.4822 13.4879C20.298 13.3565 20.1859 13.2975 20.1004 13.2117C17.4788 10.5837 14.8604 7.95302 12.2415 5.32237C11.5827 4.66068 11.5854 4.12637 12.2515 3.45798C13.1638 2.54154 14.0755 1.6251 14.9893 0.710005C15.5519 0.146198 16.1359 0.148209 16.7025 0.71738C20.6591 4.69018 24.6156 8.66298 28.5714 12.6364C29.1407 13.2083 29.1427 13.7889 28.5774 14.3567C24.6142 18.3382 20.6504 22.3197 16.6852 26.2999C16.1372 26.8503 15.5466 26.8483 14.9953 26.2965C14.0502 25.3499 13.1058 24.4027 12.164 23.4527C11.6141 22.8983 11.6127 22.3097 12.1647 21.7552C14.8064 19.0998 17.4494 16.4463 20.0944 13.7936C20.1805 13.7064 20.2866 13.6407 20.4822 13.4879Z" fill="#32B34B"/>
+                            </svg>
+                    </div>
+                    <div class="dp-showstationTo">
+                        <div id="dp-showtostation" class="dp-st-circle" style="border: 3.5px solid white;"></div>
+                        <span>To</span>
+                    </div>
+
+                </div>
+                <div class="dp-destination">
+                    <div class="dp-content">
+                        <div id="dp-to-station-number"class="dp-number" ></div>
+                        <span id="dp-to-station-name" class="dp-stationname">Destination</span>
+
+                    </div>
+                </div>
+
+                <div class="toggle-container">
+                    <div class="toggle-btn" id="priorityToggle">
+                        <div class="toggle-circle"></div>
+                        <span class="low">Priority - Low</span>
+                        <span class="high">Priority - High</span>
+                    </div>
+                </div>
+            
+                <!-- Slide-to-Dispatch Button -->
+                <div class="slide-container">
+                    <div class="slide-btn disabled" id="slideToDispatch">
+                        <div class="slide-icon">
+                            <svg  width="29" height="27" viewBox="0 0 29 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path class="dp-slide-arrow" d="M8.71613 13.4705C8.55061 13.3559 8.43648 13.2989 8.35105 13.2138C5.73006 10.5858 3.11107 7.95513 0.492752 5.32447C-0.167334 4.66144 -0.165332 4.12713 0.499427 3.46009C1.41113 2.54298 2.32284 1.62654 3.23655 0.711439C3.80053 0.146291 4.38386 0.146961 4.94984 0.715461C8.90702 4.68759 12.8629 8.66106 16.8187 12.6345C17.3887 13.2071 17.3927 13.7883 16.8281 14.3548C12.8655 18.337 8.90101 22.3178 4.93649 26.298C4.38719 26.8497 3.79652 26.8484 3.24656 26.298C2.30081 25.352 1.35707 24.4041 0.415331 23.4541C-0.135297 22.899 -0.137967 22.3104 0.413328 21.7567C3.05434 19.1012 5.69802 16.4478 8.3417 13.795C8.42714 13.7078 8.52592 13.6341 8.71613 13.4705Z" fill="#32B34B"/>
+                                <path class="dp-slide-arrow" d="M20.4822 13.4879C20.298 13.3565 20.1859 13.2975 20.1004 13.2117C17.4788 10.5837 14.8604 7.95302 12.2415 5.32237C11.5827 4.66068 11.5854 4.12637 12.2515 3.45798C13.1638 2.54154 14.0755 1.6251 14.9893 0.710005C15.5519 0.146198 16.1359 0.148209 16.7025 0.71738C20.6591 4.69018 24.6156 8.66298 28.5714 12.6364C29.1407 13.2083 29.1427 13.7889 28.5774 14.3567C24.6142 18.3382 20.6504 22.3197 16.6852 26.2999C16.1372 26.8503 15.5466 26.8483 14.9953 26.2965C14.0502 25.3499 13.1058 24.4027 12.164 23.4527C11.6141 22.8983 11.6127 22.3097 12.1647 21.7552C14.8064 19.0998 17.4494 16.4463 20.0944 13.7936C20.1805 13.7064 20.2866 13.6407 20.4822 13.4879Z" fill="#32B34B"/>
+                                </svg>
+                        </div>
+                        <span>Please Place Pod in the station</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id = "maintainance-container-id" class="maintainance-container">
+            <div class="mt-card-selftest">
+                <div class="mt-card-icon">
+                    <img src="{{ url_for('static', filename='images/podmaintanceIcon.svg') }}" alt="PodIcon">
+                </div>
+                <div class="mt-card-info">
+                    <span class="mt-text-podtest">Pod self send and receive</span>
+                    <div class="mt-slide-btn" id="mt-slideToDispatch">
+                            <div class="mt-slide-icon">
+                                <svg  width="29" height="27" viewBox="0 0 29 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path  d="M8.71613 13.4705C8.55061 13.3559 8.43648 13.2989 8.35105 13.2138C5.73006 10.5858 3.11107 7.95513 0.492752 5.32447C-0.167334 4.66144 -0.165332 4.12713 0.499427 3.46009C1.41113 2.54298 2.32284 1.62654 3.23655 0.711439C3.80053 0.146291 4.38386 0.146961 4.94984 0.715461C8.90702 4.68759 12.8629 8.66106 16.8187 12.6345C17.3887 13.2071 17.3927 13.7883 16.8281 14.3548C12.8655 18.337 8.90101 22.3178 4.93649 26.298C4.38719 26.8497 3.79652 26.8484 3.24656 26.298C2.30081 25.352 1.35707 24.4041 0.415331 23.4541C-0.135297 22.899 -0.137967 22.3104 0.413328 21.7567C3.05434 19.1012 5.69802 16.4478 8.3417 13.795C8.42714 13.7078 8.52592 13.6341 8.71613 13.4705Z" fill="#32B34B"/>
+                                    <path  d="M20.4822 13.4879C20.298 13.3565 20.1859 13.2975 20.1004 13.2117C17.4788 10.5837 14.8604 7.95302 12.2415 5.32237C11.5827 4.66068 11.5854 4.12637 12.2515 3.45798C13.1638 2.54154 14.0755 1.6251 14.9893 0.710005C15.5519 0.146198 16.1359 0.148209 16.7025 0.71738C20.6591 4.69018 24.6156 8.66298 28.5714 12.6364C29.1407 13.2083 29.1427 13.7889 28.5774 14.3567C24.6142 18.3382 20.6504 22.3197 16.6852 26.2999C16.1372 26.8503 15.5466 26.8483 14.9953 26.2965C14.0502 25.3499 13.1058 24.4027 12.164 23.4527C11.6141 22.8983 11.6127 22.3097 12.1647 21.7552C14.8064 19.0998 17.4494 16.4463 20.0944 13.7936C20.1805 13.7064 20.2866 13.6407 20.4822 13.4879Z" fill="#32B34B"/>
+                                    </svg>
+                            </div>
+                            <span>Slide to dispatch</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-card-indexing">
+                <div class="mt-card-icon">
+                    <img src="{{ url_for('static', filename='images/indexingIconsvg.svg') }}" alt="PodIcon">
+                </div>
+                <div class="mt-card-info">
+                    <span class="mt-text-podtest">Indexing and inching </span>
+                    <div class="mt-index-button-container">
+                        <button class="mt-side-button">
+                            <span>Left</span>
+                        </button>
+                        <div class="mt-indexicon">
+                            <img src="{{ url_for('static', filename='images/IndexIcon.svg') }}" alt="ButtonIcon">
+                        </div>
+                        <button class="mt-side-button">
+                            <span>Right</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-card-indexing-status">
+                <div class="mt-card-icon">
+                    <img src="{{ url_for('static', filename='images/indexingIconsvg.svg') }}" alt="PodIcon">
+                </div>
+                <div class="mt-card-info">
+                    <span class="mt-text-podtest">Indexing and inching </span>
+                    <div class="mt-indx-status-container">
+                        <div class="mt-indx-status-box" id="idx-status1" role="button" tabindex="0" aria-label="Trigger Load">
+                            <span id="S1" class="mt-indx-indicator green"></span>
+                            <span class="mt-indx-status-text">Load</span>
+                            <span class="status-tooltip">Click to trigger</span>
+                        </div>
+                        <div class="mt-indx-status-box" id="idx-status3" role="button" tabindex="0" aria-label="Trigger Pass through">
+                            <span id="S2" class="mt-indx-indicator gray"></span>
+                            <span class="mt-indx-status-text">Pass through</span>
+                            <span class="status-tooltip">Click to trigger</span>
+                        </div>
+                        <div class="mt-indx-status-box" id="idx-status2" role="button" tabindex="0" aria-label="Trigger Arrive">
+                            <span id="S3" class="mt-indx-indicator gray"></span>
+                            <span class="mt-indx-status-text">Arrive</span>
+                            <span class="status-tooltip">Click to trigger</span>
+                        </div>
+                        <div class="mt-indx-status-box" id="idx-status4" role="button" tabindex="0" aria-label="Trigger Drop">
+                            <span id="S4" class="mt-indx-indicator gray"></span>
+                            <span class="mt-indx-status-text">Drop</span>
+                            <span class="status-tooltip">Click to trigger</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-card-podmovement">
+                <div class="mt-card-icon">
+                    <img src="{{ url_for('static', filename='images/podmovementIcon1.svg') }}" alt="PodIcon">
+                    <img src="{{ url_for('static', filename='images/podmovementIcon2.svg') }}" alt="PodIcon">
+                </div>
+                <div class="mt-card-info">
+                    <span class="mt-text-podtest">Pod movement sensing</span>
+                    <div class="mt-status-container">
+                        <div class="mt-status-box" id="status1" role="button" tabindex="0" aria-label="Trigger New Pod">
+                            <span id="P1" class="indicator green"></span>
+                            <span class="status-text">New Pod</span>
+                            <span class="status-tooltip">Click to trigger</span>
+                        </div>
+                        <div class="mt-status-box" id="status2" role="button" tabindex="0" aria-label="Trigger Pod Arrive">
+                            <span id="P2" class="indicator gray"></span>
+                            <span class="status-text">Pod Arrive</span>
+                            <span class="status-tooltip">Click to trigger</span>
+                        </div>
+                        <div class="mt-status-box" id="status3" role="button" tabindex="0" aria-label="Trigger In Pass Through">
+                            <span id="P3" class="indicator green"></span>
+                            <span class="status-text">In Pass Through</span>
+                            <span class="status-tooltip">Click to trigger</span>
+                        </div>
+                        <div class="mt-status-box" id="status4" role="button" tabindex="0" aria-label="Trigger In Buffer">
+                            <span id="P4" class="indicator gray"></span>
+                            <span class="status-text">In Buffer</span>
+                            <span class="status-tooltip">Click to trigger</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-card-airdivert">
+                <div class="mt-card-airdivert-1">
+                    <div class="mt-card-icon">
+                        <img src="{{ url_for('static', filename='images/AircontrolIcon.svg') }}" alt="AirIcon">
+                    </div>
+                    <div class="mt-card-info">
+                        <span class="mt-text-podtest">Air diverter control </span>
+                        <div class="mt-index-button-container">
+                            <button class="mt-side-button">
+                                <span>Suck</span>
+                            </button>
+                            <button class="mt-end-button">
+                                <span>Stop</span>
+                            </button>
+                            <button class="mt-side-button">
+                                <span>Blow</span>
+                            </button>
+                        </div>
+                    </div>
+                   
+                </div>
+                <div class="mt-air-slider-container">
+                    <div class="mt-air-percentage-box" id="mt-air-percentage">5%</div>
+                    <div class="mt-power-box">
+                        <span class="mt-air-label">Power</span>
+                        <input type="range" id="mt-air-slider" min="0" max="100" value="5">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="cleardata-container-id" class="cleardata-container">
+            <div class="cd-card-cleardata">
+                <div class="cd-card-icon">
+                <img src="{{ url_for('static', filename='images/cleardataIcon.svg') }}" alt="ClearIcon">
+                </div>
+                <div class="cd-card-info">
+                <span class="cd-text-podtest">Clear Data</span>
+                <div class="cd-slide-btn" id="cd-slideToDispatch">
+                    <div class="cd-slide-icon">
+                    <!-- SVG -->
+                    </div>
+                    <span>Clear Data</span>
+                </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- ✅ Popup moved outside card -->
+            <div id="cd-popup" class="cd-popup-overlay" style="display:none;">
+            <div class="cd-popup-box">
+                <h3>Select time range to clear:</h3>
+                <label><input type="checkbox" name="cd-clear-option" value="30"> Past 30 Days</label><br>
+                <label><input type="checkbox" name="cd-clear-option" value="7"> Past 7 Days</label><br>
+                <label><input type="checkbox" name="cd-clear-option" value="all"> All</label><br><br>
+
+                <div class="button-container">
+                <button id="cd-popup-ok">OK</button>
+                 <button id="cd-popup-cancel">Back</button>
+                </div>
+            </div>
+            </div>
+
+
+        <div id="keypass-container-id" class="keypass-container">
+            <!-- Left Panel -->
+            <div id="kp-left-panel-cleardata-id" class="kp-left-panel-cleardata">
+                <div class="kp-clear-data-logo">
+                    <img src="{{ url_for('static', filename='images/ClearDataKeypass.svg') }}" alt="CD Icon">
+                </div>
+                <span>Clear Data</span>
+                <div class="kp-teller-loop-icon">
+                    <img src="{{ url_for('static', filename='images/TellerLoopKeyPass.svg') }}" alt="TL_logo">
+                </div>
+            </div>
+
+            <div id="kp-left-panel-maintainance-id" class="kp-left-panel-maintainance">
+                <div class="kp-clear-data-logo">
+                    <img src="{{ url_for('static', filename='images/MaintainanceKeypassIcon.svg') }}" alt="MT Icon">
+                </div>
+                <span>Maintainance</span>
+                <div class="kp-teller-loop-icon">
+                    <img src="{{ url_for('static', filename='images/TellerLoopKeyPass.svg') }}" alt="TL_logo">
+                </div>
+            </div>
+    
+            <!-- Right Panel -->
+            <div class="kp-right-panel">
+                <span class="kp-pin_text" id="kp-pindisptext">Please enter PIN</span>
+    
+                <!-- PIN Display (Now centered in keypad width) -->
+                <div class="kp-pin-container">
+                    <div class="kp-pin-display">
+                        <span class="kp-pin-dot" id="kp-dot1">○</span>
+                        <span class="kp-pin-dot" id="kp-dot2">○</span>
+                        <span class="kp-pin-dot" id="kp-dot3">○</span>
+                        <span class="kp-pin-dot" id="kp-dot4">○</span>
+                    </div>
+                    <button id="kp-toggle-visibility">
+                        <img width=30px; height=30px; src="{{ url_for('static', filename='images/hide.png') }}" alt="EyeIcon">
+                    </button>
+                </div>
+
+                <!-- Underline -->
+                <div class="kp-underline"></div>
+    
+                <!-- Keypad -->
+                <div class="kp-keypad">
+                    <button class="kp-key" data-value="1">1</button>
+                    <button class="kp-key" data-value="2">2</button>
+                    <button class="kp-key" data-value="3">3</button>
+                    <button class="kp-key" data-value="4">4</button>
+                    <button class="kp-key" data-value="5">5</button>
+                    <button class="kp-key" data-value="6">6</button>
+                    <button class="kp-key" data-value="7">7</button>
+                    <button class="kp-key" data-value="8">8</button>
+                    <button class="kp-key" data-value="9">9</button>
+                    <button class="kp-key back" data-value="back">
+                        <img class="kp-btn-icon" src="{{ url_for('static', filename='images/backspaceIcon.svg') }}" alt="BackSpaceIcon">
+                    </button>
+                    <button class="kp-key" data-value="0">0</button>
+                    <button class="kp-key enter" data-value="enter">
+                        <img class="kp-btn-icon" src="{{ url_for('static', filename='images/EnterIcon.svg') }}" alt="EnterIcon">
+                    </button>
+                </div>
+    
+            </div>
+        </div>
+        
+        <main id= "db-content-id" class="main-content">
+            <section class="live-tracking">
+                <span class="trackingtext">Live Tracking</span>
+                <div id="standby-info-id" class="standby-info">
+                    <img src="{{ url_for('static', filename='images/StandbyIcon.svg') }}" alt="Standby Icon">
+                    <span>System standby</span></div>
+                </div>
+                <div id="tracking-info-id" class="tracking-info">
+                    <div class="showstationFrom">
+                    <div class="circle"></div>
+                    <span>From</span>
+                    </div>
+                    <div class="movement-disp">
+                        <svg  width="24" height="22" viewBox="0 0 29 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path class="arrow" d="M8.71613 13.4705C8.55061 13.3559 8.43648 13.2989 8.35105 13.2138C5.73006 10.5858 3.11107 7.95513 0.492752 5.32447C-0.167334 4.66144 -0.165332 4.12713 0.499427 3.46009C1.41113 2.54298 2.32284 1.62654 3.23655 0.711439C3.80053 0.146291 4.38386 0.146961 4.94984 0.715461C8.90702 4.68759 12.8629 8.66106 16.8187 12.6345C17.3887 13.2071 17.3927 13.7883 16.8281 14.3548C12.8655 18.337 8.90101 22.3178 4.93649 26.298C4.38719 26.8497 3.79652 26.8484 3.24656 26.298C2.30081 25.352 1.35707 24.4041 0.415331 23.4541C-0.135297 22.899 -0.137967 22.3104 0.413328 21.7567C3.05434 19.1012 5.69802 16.4478 8.3417 13.795C8.42714 13.7078 8.52592 13.6341 8.71613 13.4705Z" fill="white"/>
+                            <path class="arrow" d="M20.4822 13.4879C20.298 13.3565 20.1859 13.2975 20.1004 13.2117C17.4788 10.5837 14.8604 7.95302 12.2415 5.32237C11.5827 4.66068 11.5854 4.12637 12.2515 3.45798C13.1638 2.54154 14.0755 1.6251 14.9893 0.710005C15.5519 0.146198 16.1359 0.148209 16.7025 0.71738C20.6591 4.69018 24.6156 8.66298 28.5714 12.6364C29.1407 13.2083 29.1427 13.7889 28.5774 14.3567C24.6142 18.3382 20.6504 22.3197 16.6852 26.2999C16.1372 26.8503 15.5466 26.8483 14.9953 26.2965C14.0502 25.3499 13.1058 24.4027 12.164 23.4527C11.6141 22.8983 11.6127 22.3097 12.1647 21.7552C14.8064 19.0998 17.4494 16.4463 20.0944 13.7936C20.1805 13.7064 20.2866 13.6407 20.4822 13.4879Z" fill="white"/>
+                            </svg>
+                        <span Task ID: </span>
+                    </div>
+                    <div class="showstationTo">
+                        <div class="circle"></div>
+                        <span>To</span>
+                        </div>
+                    <div class="seperator"></div>
+                    <div class="abort-button">
+                        <img src="{{ url_for('static', filename='images/AbortIcon.svg') }}" alt="Abort Icon">
+                        <span>Abort</span></div>
+                </div>
+            </section>
+            <section id= "db-requests-id" class="requests">
+                <div class="request-card">
+                    <span>Request Empty <br> Pod </span>
+                    <img src="{{ url_for('static', filename='images/podicon.svg') }}" alt="Pod Icon">
+                    <button class="send-button" {% if page_id == 0 %}disabled{% endif %}>Send</button>
+                </div>
+                <div class="requested-card">
+                    <span>Empty Pod <br> Request from</span>
+                    <div class="req-pod-station"></div>
+                    <button class="accept" {% if page_id == 0 %}disabled{% endif %}>Accept</button>
+                </div>
+                {% if page_id != 0 %}
+                <div class="pass-through">
+                    <div class="pass-through-status"></div>
+                    <div class="pass-through-text"> 
+                        <img src="{{ url_for('static', filename='images/PassthroughIcon.svg') }}" alt="Abort Icon">
+                        <span>Pass through</span> 
+                    </div>
+                </div>
+                {% endif %}
+            </section>
+        </main>
+
+        <div id="history-container-id" class="history-container">
+            <div class="filters">
+                <label>Filters:</label>
+                <input type="radio" name="filter" id="filter-all" checked> 
+                <span>All</span>
+                <input type="radio" name="filter" id="filter-incoming"> 
+                <span>Incoming</span>
+                <input type="radio" name="filter" id="filter-outgoing"> 
+                <span>Outgoing</span>
+                <input type="radio" name="filter" id="filter-abort">
+                <span>Abort</span> 
+                <label style="font-size: 12px;">All stations:</label>
+                <label class="switch">
+                    <input type="checkbox" id="toggleSwitch">
+                    <span class="slider"></span>
+                </label>
+                <button id="download-btn" class="download-button" {% if page_id != 1 %}style="display: none;"{% endif %}>
+                    <img src="{{ url_for('static', filename='images/DownloadIcon.svg') }}" alt="ScreenLock Icon">
+                    Download</button>
+            </div>
+    
+            <div class="sorting">
+                <label>Sort:</label>
+                <input type="radio" name="sort" id="sort-id-asc" checked> 
+                <span>Task ID Ascend</span>
+                <input type="radio" name="sort" id="sort-id-desc"> 
+                <span>Task ID Descend</span>
+                <input type="radio" name="sort" id="sort-time-asc">
+                <span>Time Ascend</span> 
+                <input type="radio" name="sort" id="sort-time-desc">
+                <span>Time Descend</span>
+            </div>
+    
+            <div class="table-container noselect">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Task ID</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-table">
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.task_id }}</td>
+                            <td>{{ log.from }}</td>
+                            <td>{{ log.to }}</td>
+                            <td>{{ log.date }}</td>
+                            <td>{{ log.time }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="{{ url_for('static', filename='js/dispatchpage.js') }}?v={{ version }}"></script>
+    <script src="{{ url_for('static', filename='js/historypage.js') }}?v={{ version }}"></script>
+    <script src="{{ url_for('static', filename='js/maintainancepage.js') }}?v={{ version }}"></script>
+    <script src="{{ url_for('static', filename='js/cleardatapage.js') }}?v={{ version }}"></script>
+    <script src="{{ url_for('static', filename='js/keypasspage.js') }}?v={{ version }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboardpage.js') }}?v={{ version }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}?v={{ version }}"></script>
+    <script>
+        window.addEventListener('gesturestart', e => e.preventDefault());
+        window.addEventListener('gesturechange', e => e.preventDefault());
+        window.addEventListener('gestureend', e => e.preventDefault());
+    </script>
+    <script>
+        if (window.STATION_ID === 0) {
+            // Admin station: Hide Dispatch container and activate Dashboard
+            document.getElementById('dispatch-container-id').style.display = 'none';
+            document.getElementById('db-content-id').style.display = 'block';
+            document.getElementById('Dashboard-Btn').classList.add('active');
+            setTimeout(() => {
+                document.getElementById('Dashboard-Btn').dispatchEvent(new Event('click'));
+            }, 300); 
+        }
+    </script>
+
+</body>
+</html>
