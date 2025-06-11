@@ -12,6 +12,7 @@ import time
 from collections import defaultdict, deque
 import random
 import logging
+import schedule  # Add this import at the top
 
 # use sensor 5 data to check the pod's status. based on it use simple if conditions to check if a dispatch can be done or not. 
 
@@ -45,7 +46,7 @@ STATION_IDS = {
 }
 
 # MQTT Configuration
-mqtt_broker_ip = "192.168.90.3"  # ✅ for local Mosquitto broker
+mqtt_broker_ip = "localhost"  # ✅ for local Mosquitto broker
 mqtt_broker_port = 1883
 mqtt_username = "oora"
 mqtt_password = "oora"
@@ -1080,7 +1081,7 @@ def get_current_station_by_id(station_id):
     return jsonify({'station_id': station_id})
 
 @app.route('/api/download_history', methods=['GET'])
-def download_history():  # Removed the station_id parameter as it's not used in the function
+def download_history():
     db = get_db()
     rows = db.execute(
         'SELECT * FROM history ORDER BY timestamp DESC'
@@ -1160,6 +1161,46 @@ def handle_empty_pod_request_accepted(data):
     mqtt.publish(f"{mqtt_topic_base}START_DISPATCH/{data.get('acceptorStation', 'Unknown')}", start_dispatch_message)
     logger.info(f" Start dispatch published to {data.get('acceptorStation')}: {start_dispatch_message}")
     
+def cleanup_old_history():
+    """
+    Deletes history entries older than 90 days
+    """
+    try:
+        db = get_db()
+        cutoff_date = datetime.now() - timedelta(days=30)
+        cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Delete old entries
+        cursor = db.execute(
+            'DELETE FROM history WHERE timestamp < ?',
+            (cutoff_date_str,)
+        )
+        deleted_count = cursor.rowcount
+        db.commit()
+        
+        logger.info(f"Cleaned up {deleted_count} history entries older than 90 days")
+        return deleted_count
+    except Exception as e:
+        logger.error(f"Error cleaning up old history: {e}")
+        return 0
+
+def run_scheduled_tasks():
+    """
+    Runs scheduled tasks in a loop
+    """
+    while True:
+        schedule.run_pending()
+        time.sleep(60)  # Check every minute
+
+# Schedule the cleanup task to run daily at midnight
+schedule.every().day.at("00:00").do(cleanup_old_history)
+
+# Start the scheduler in a separate thread
+scheduler_thread = threading.Thread(target=run_scheduled_tasks, daemon=True)
+scheduler_thread.start()
+
 if __name__ == '__main__':
     init_db()
+    # Run initial cleanup
+    cleanup_old_history()
     socketio.run(app, host='0.0.0.0', port=80, debug=True)

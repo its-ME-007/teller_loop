@@ -38,12 +38,10 @@
                 <img src="{{ url_for('static', filename='images/TellerLoopScLogo.svg') }}" alt="Teller Loop Logo">
             </div>
             <nav>
-                {% if page_id != 0 %}
-                <button id="Dispatch-Btn" class="nav-button active">
+                <button id="Dispatch-Btn" class="nav-button {% if page_id == 0 %}active{% endif %}">
                     <img src="{{ url_for('static', filename='images/DispatchIcon.svg') }}" alt="Dispatch Icon">
                     Dispatch
                 </button>
-                {% endif %}
                 <button id="Dashboard-Btn" class="nav-button">
                     <img src="{{ url_for('static', filename='images/DashboardIcon.svg') }}" alt="Dashboard Icon">
                     Dashboard</button>
@@ -62,7 +60,7 @@
             </nav>
         </aside>
 
-        <div id="dispatch-container-id" class="dispatch-container" {% if page_id == 0 %}style="display: none;"{% endif %}>
+        <div id="dispatch-container-id" class="dispatch-container">
             <div class="dp-selecttxt">Select Destination</div>
             <div class="dp-destination-list" id="dp-destinationList">
                 <!-- Dynamic Destination Buttons Here -->
@@ -406,7 +404,7 @@
                     <input type="checkbox" id="toggleSwitch">
                     <span class="slider"></span>
                 </label>
-                <button id="download-btn" class="download-button" {% if page_id != 1 %}style="display: none;"{% endif %}>
+                <button id="download-btn" class="download-button" {% if page_id != 0 %}style="display: none;"{% endif %}>
                     <img src="{{ url_for('static', filename='images/DownloadIcon.svg') }}" alt="ScreenLock Icon">
                     Download</button>
             </div>
@@ -468,13 +466,10 @@
     </script>
     <script>
         if (window.STATION_ID === 0) {
-            // Admin station: Hide Dispatch container and activate Dashboard
-            document.getElementById('dispatch-container-id').style.display = 'none';
+            // Admin station: Show all containers and let user choose which screen to view
+            document.getElementById('dispatch-container-id').style.display = 'none';  // Initially hidden but can be shown
             document.getElementById('db-content-id').style.display = 'block';
             document.getElementById('Dashboard-Btn').classList.add('active');
-            setTimeout(() => {
-                document.getElementById('Dashboard-Btn').dispatchEvent(new Event('click'));
-            }, 300); 
         }
     </script>
 

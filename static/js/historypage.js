@@ -43,11 +43,21 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
     
-    // Download functionality - only for station 1
+    // Download functionality - only for station 0
     const downloadBtn = document.getElementById("download-btn");
     if (downloadBtn) {
         downloadBtn.addEventListener("click", function() {
-            if (STATION_ID === 1) {
+            console.log("Download button clicked");
+            console.log("STATION_ID:", window.STATION_ID);
+            
+            // Check if jsPDF is available
+            if (typeof window.jspdf === 'undefined') {
+                console.error("jsPDF library not loaded");
+                alert("PDF generation library not loaded. Please refresh the page.");
+                return;
+            }
+
+            try {
                 // Create new PDF document
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
@@ -88,6 +98,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 // Save the PDF
                 doc.save(`teller_loop_history_${new Date().toISOString().split('T')[0]}.pdf`);
+                console.log("PDF generated successfully");
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+                alert("Error generating PDF. Please check console for details.");
             }
         });
     }

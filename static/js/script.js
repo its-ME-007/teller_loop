@@ -123,28 +123,36 @@ function toggleScreensOnClick(buttonid) {
   
   function showdispatchpage(){
     hideallelements();
-    checkDispatchPermission();
-    checkPodAvailability();
+    // Only check dispatch permission and pod availability for non-station-0
+    if (window.STATION_ID !== 0) {
+        checkDispatchPermission();
+        checkPodAvailability();
+    }
     dp_container.style.display = 'flex';
     setActiveNav("Dispatch");
   }
 
   function showhistorypage(){
     hideallelements();
-    history_container.style.display = 'flex';
+    if (history_container) {
+        history_container.style.display = 'block';  // Changed from 'flex' to 'block'
+        console.log("History container displayed:", history_container.style.display);
+    } else {
+        console.error("History container not found");
+    }
     setActiveNav("History");
   }
 
   function showkeypasspage(){
     hideallelements();
     if (getActiveButton()=="Maintainance-Btn"){
-      document.getElementById("kp-left-panel-maintainance-id").style.display = 'flex';
-      keypass_container.style.display = 'flex';
-     }
+        document.getElementById("kp-left-panel-maintainance-id").style.display = 'flex';
+        keypass_container.style.display = 'flex';
+    }
     if (getActiveButton()=="ClearData-Btn"){
-      document.getElementById("kp-left-panel-cleardata-id").style.display = 'flex';
-      keypass_container.style.display = 'flex';
-     }
+        document.getElementById("kp-left-panel-cleardata-id").style.display = 'flex';
+        keypass_container.style.display = 'flex';
+    }
   }
   
   function showmaintainancepage(){

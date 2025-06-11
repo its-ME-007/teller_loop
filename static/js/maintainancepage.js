@@ -130,12 +130,30 @@ document.addEventListener("DOMContentLoaded", function () {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: label, power })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(`${label} action triggered:`, data);
+                    showNotification(`${label.charAt(0).toUpperCase() + label.slice(1)} action triggered`, 'success');
+                })
+                .catch(error => {
+                    console.error(`Failed to trigger ${label} action:`, error);
+                    showNotification(`Failed to trigger ${label} action`, 'error');
                 });
             } else if (label == 'stop') {
                 fetch(`/api/maintenance/stop/${STATION_ID}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'stop' })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Stop action triggered:', data);
+                    showNotification('Stop action triggered', 'success');
+                })
+                .catch(error => {
+                    console.error('Failed to trigger stop action:', error);
+                    showNotification('Failed to trigger stop action', 'error');
                 });
             }
         });
