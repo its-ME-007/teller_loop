@@ -64,8 +64,8 @@
                                 
                                 // Show success alert with selected option
                                 let apiEndpoint = '';
-                            if (selected === '7') {
-                                apiEndpoint = '/api/clear_history_7';
+                            if (selected === '60') {
+                                apiEndpoint = '/api/clear_history_60';
                             } else if (selected === '30') {
                                 apiEndpoint = '/api/clear_history_30';
                             } else if (selected === 'all') {

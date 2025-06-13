@@ -1014,17 +1014,16 @@ def clear_history():
         }), 500
 
 
-# 7-day clear history endpoint
-@app.route('/api/clear_history_7', methods=['DELETE'])
-def clear_history_7_days():
-    """Clear history data older than 7 days"""
+# 60-day clear history endpoint
+@app.route('/api/clear_history_60', methods=['DELETE'])
+def clear_history_60_days():
+    """Clear history data older than 60 days"""
     try:
-        # Calculate the cutoff date (7 days ago)
-        cutoff_date = datetime.now() - timedelta(days=7)
+        # Calculate the cutoff date (60 days ago)
+        cutoff_date = datetime.now() - timedelta(days=60)
         cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
 
-        db = get_db()
-        # Delete records older than 7 days from the sensor_data table
+        db = get_db()        # Delete records older than 60 days from the sensor_data table
         cursor = db.execute(
             'DELETE FROM sensor_data WHERE timestamp < ?',
             (cutoff_date_str,)
@@ -1033,20 +1032,20 @@ def clear_history_7_days():
         deleted_count = cursor.rowcount
         db.commit()
 
-        logger.info(f"Cleared {deleted_count} records older than 7 days from sensor_data table")
+        logger.info(f"Cleared {deleted_count} records older than 60 days from sensor_data table")
 
         return jsonify({
             'status': 'success',
-            'message': f'Sensor data older than 7 days cleared successfully. {deleted_count} records deleted.',
+            'message': f'Sensor data older than 60 days cleared successfully. {deleted_count} records deleted.',
             'records_deleted': deleted_count,
             'cutoff_date': cutoff_date.isoformat()
         }), 200
 
     except Exception as e:
-        logger.error(f"Error clearing 7-day history: {e}")
+        logger.error(f"Error clearing 60-day history: {e}")
         return jsonify({
             'status': 'error',
-            'message': f'Failed to clear 7-day history: {str(e)}'
+            'message': f'Failed to clear 60-day history: {str(e)}'
         }), 500
 
 
@@ -1128,11 +1127,11 @@ def maintenance_inching(station_id):
 @app.route('/api/maintenance/airdivert/<int:station_id>', methods=['POST'])
 def maintenance_air_divert(station_id):
     action = request.json.get('action')
-    power = request.json.get('power')
-    if action not in ['suck', 'blow'] or not isinstance(power, int):
+    # power = request.json.get('power')
+    if action not in ['suck', 'blow']:
         return jsonify({"error": "Invalid request"}), 400
-    mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": action, "power": power}))
-    return jsonify({"status": "sent", "action": action, "power": power}), 200
+    mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": action}))
+    return jsonify({"status": "sent", "action": action}), 200
 
 @app.route('/api/maintenance/stop/<int:station_id>', methods=['POST'])
 def maintenance_stop(station_id):
