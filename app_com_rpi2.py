@@ -402,7 +402,16 @@ def handle_mqtt_message(client, userdata, message):
                 
     except Exception as e:
         logger.error(f"MQTT message processing error: {e}")
+@socketio.on('maintenance_entered')
+def handle_maintenance_entered(data):
+    station_id = data['station_id']
+    emit('notify_maintenance_entered', {'station_id': station_id}, broadcast=True, include_self=False)
 
+@socketio.on('maintenance_exited')
+def handle_maintenance_exited(data):
+    station_id = data['station_id']
+    emit('notify_maintenance_exited', {'station_id': station_id}, broadcast=True, include_self=False)
+    
 @socketio.on('dispatch_completed')
 def handle_dispatch_completed(data):
     global dispatch_in_progress, current_dispatch
@@ -1270,6 +1279,7 @@ schedule.every().day.at("00:00").do(cleanup_old_history)
 # Start the scheduler in a separate thread
 scheduler_thread = threading.Thread(target=run_scheduled_tasks, daemon=True)
 scheduler_thread.start()
+
 
 if __name__ == '__main__':
     init_db()

@@ -23,6 +23,9 @@ keypadButtons.forEach((button) => {
                 }
                 if (getActiveButton()=="Maintainance-Btn"){
                     console.log("Log In to:",getActiveButton())
+                     if (typeof socket !== 'undefined' && window.STATION_ID) {
+                        socket.emit('maintenance_entered', { station_id: window.STATION_ID });
+                    }
                     hideallelements();
                     showmaintainancepage();
                 }

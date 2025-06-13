@@ -44,6 +44,21 @@ function toggleTrackingInfo() {
 });
 
 function toggleScreensOnClick(buttonid) {
+    // If leaving maintenance page, log logout
+    if (document.getElementById('maintainance-container-id').style.display === 'flex') {
+        console.log("Logged out of :Maintenance page");
+    }
+    if (
+      document.getElementById('maintainance-container-id')?.style.display === 'flex' &&  // user is currently in maintenance
+      buttonid !== "Maintainance-Btn" &&                                                 // clicked a different button
+      typeof socket !== 'undefined' &&
+      window.STATION_ID
+    ) {
+      socket.emit('maintenance_exited', { station_id: window.STATION_ID });
+    }
+
+
+
     console.log("Check..",buttonid)
     switch (buttonid){
         case "Dispatch-Btn":
@@ -82,6 +97,13 @@ function toggleScreensOnClick(buttonid) {
   }
 
   function hideallelements() {
+    if (maintainance_container && maintainance_container.style.display !== 'none') {
+      if (typeof socket !== 'undefined' && window.STATION_ID) {
+        console.log(" Sending maintenance_exited");
+        socket.emit('maintenance_exited', { station_id: window.STATION_ID });
+      }
+    }
+
     // Do NOT hide dashboard elements — they are toggled in showdashboardpage
     if (db_content) db_content.style.display = 'none';
     if (db_request) db_request.style.display = 'none';
@@ -155,6 +177,10 @@ function toggleScreensOnClick(buttonid) {
     hideallelements();
     maintainance_container.style.display = 'flex';
     setActiveNav("Maintainance");
+    if (typeof socket !== 'undefined' && window.STATION_ID) {
+      console.log("Sending maintenance_enetred");
+    socket.emit('maintenance_entered', { station_id: window.STATION_ID });
+  }
   }
 
   function showcleardatapage(){
@@ -174,6 +200,19 @@ function toggleScreensOnClick(buttonid) {
     const socket = io(); // Ensure socket is connected after DOM is ready
 
     let wasDisconnected = false;
+  socket.on('notify_maintenance_entered', function(data) {
+  if (data.station_id !== window.STATION_ID) {  //  don't alert self
+    alert(`Station ${data.station_id} has entered Maintenance Mode`);
+  }
+});
+
+
+socket.on('notify_maintenance_exited', function(data) {
+  if (data.station_id !== window.STATION_ID) {  // don't alert self
+    alert(`Station ${data.station_id} has exited Maintenance Mode`);
+  }
+});
+
 
   socket.on('disconnect', () => {
     console.warn("⚠️ Socket disconnected");
@@ -248,6 +287,7 @@ function toggleScreensOnClick(buttonid) {
       targetBtn.classList.add('active');
     }
   }
+
   
   
   
