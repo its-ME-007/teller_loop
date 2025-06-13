@@ -8,15 +8,16 @@ let podAvailable = false; // NEW
 let isPriorityHigh = false;
 
 function formatStationDisplay(stationName) {
-  if (!stationName || stationName.length < 2) return "P1";
-  const first = stationName.charAt(0).toUpperCase();
+  if (!stationName || stationName.length < 2) return "S1";
+  //const first = stationName.charAt(0).toUpperCase();
+  const first='P';
   const last = stationName.charAt(stationName.length - 1);
   return first + last;
 }
 
 document.addEventListener("DOMContentLoaded", function () {
   currentStationNumber = typeof STATION_ID !== "undefined" ? STATION_ID : 1;
-  currentStationName = `passthrough-station-${currentStationNumber}`;
+  currentStationName = `station-${currentStationNumber}`;
   currentStationDisplay = formatStationDisplay(currentStationName);
   const dp_slideButton = document.getElementById("slideToDispatch");
   if (!dp_slideButton) return;
@@ -129,7 +130,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const idStr = station.id;
         const stationNumber = parseInt(idStr.split('-').pop()) || 1;
         const displayId = formatStationDisplay(idStr);
-        return { id: stationNumber, displayId: displayId, name: station.id };
+        const name1 = idStr.replace('passthrough-', '');
+        return { id: stationNumber, displayId: displayId, name: name1 };
+       
       });
 
       const filteredDest = destinations.filter(dest => dest.name !== currentStationName);

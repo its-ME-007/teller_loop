@@ -12,7 +12,7 @@ import time
 from collections import defaultdict, deque
 import random
 import logging
-import schedule  # Add this import at the top
+import schedule
 
 # use sensor 5 data to check the pod's status. based on it use simple if conditions to check if a dispatch can be done or not. 
 
@@ -41,15 +41,15 @@ current_dispatch = None
 STATION_IDS = {
     'passthrough-station-1': 1,
     'passthrough-station-2': 2,
-    'passthrough-station-3': 3,
-    'passthrough-station-4': 4
+    #'passthrough-station-3': 3,
+    #'passthrough-station-4': 4
 }
 
 # MQTT Configuration
 mqtt_broker_ip = "localhost"  # ✅ for local Mosquitto broker
 mqtt_broker_port = 1883
-mqtt_username = "oora"
-mqtt_password = "oora"
+mqtt_username = ""
+mqtt_password = ""
 
 # MQTT Topics
 
@@ -740,8 +740,8 @@ station_passwords = {
     0: "0000",
     1: "1111",
     2: "2222",
-    3: "3333",
-    4: "4444"
+    #3: "3333",
+    #4: "4444"
 }
 
 @app.route('/<int:page_id>', methods=['GET', 'POST'])
@@ -1004,6 +1004,78 @@ def clear_history():
             'message': f'Failed to clear history: {str(e)}'
         }), 500
 
+
+# 7-day clear history endpoint
+@app.route('/api/clear_history_7', methods=['DELETE'])
+def clear_history_7_days():
+    """Clear history data older than 7 days"""
+    try:
+        # Calculate the cutoff date (7 days ago)
+        cutoff_date = datetime.now() - timedelta(days=7)
+        cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
+
+        db = get_db()
+        # Delete records older than 7 days from the sensor_data table
+        cursor = db.execute(
+            'DELETE FROM sensor_data WHERE timestamp < ?',
+            (cutoff_date_str,)
+        )
+
+        deleted_count = cursor.rowcount
+        db.commit()
+
+        logger.info(f"Cleared {deleted_count} records older than 7 days from sensor_data table")
+
+        return jsonify({
+            'status': 'success',
+            'message': f'Sensor data older than 7 days cleared successfully. {deleted_count} records deleted.',
+            'records_deleted': deleted_count,
+            'cutoff_date': cutoff_date.isoformat()
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error clearing 7-day history: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to clear 7-day history: {str(e)}'
+        }), 500
+
+
+# 30-day clear history endpoint
+@app.route('/api/clear_history_30', methods=['DELETE'])
+def clear_history_30_days():
+    """Clear history data older than 30 days"""
+    try:
+        # Calculate the cutoff date (30 days ago)
+        cutoff_date = datetime.now() - timedelta(days=30)
+        cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
+
+        db = get_db()
+        # Delete records older than 30 days from the sensor_data table
+        cursor = db.execute(
+            'DELETE FROM sensor_data WHERE timestamp < ?',
+            (cutoff_date_str,)
+        )
+
+        deleted_count = cursor.rowcount
+        db.commit()
+
+        logger.info(f"Cleared {deleted_count} records older than 30 days from sensor_data table")
+
+        return jsonify({
+            'status': 'success',
+            'message': f'Sensor data older than 30 days cleared successfully. {deleted_count} records deleted.',
+            'records_deleted': deleted_count,
+            'cutoff_date': cutoff_date.isoformat()
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error clearing 30-day history: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to clear 30-day history: {str(e)}'
+        }), 500
+    
 @app.route('/api/get_dispatch_history')
 def get_dispatch_history():
     db = get_db()

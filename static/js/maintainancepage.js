@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: label, power })
-                })
+                }) 
                 .then(response => response.json())
                 .then(data => {
                     console.log(`${label} action triggered:`, data);
@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'stop' })
-                })
+                })  
                 .then(response => response.json())
                 .then(data => {
                     console.log('Stop action triggered:', data);
@@ -162,7 +162,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // Initialize status box interactions
     initStatusBoxInteractions();
 });
-
 function checkMaintenancePermission() {
     fetch('/api/check_dispatch_allowed')
         .then(res => res.json())

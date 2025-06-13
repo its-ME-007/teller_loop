@@ -43,11 +43,11 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
     
-    // Download functionality - only for station 0
+    // Download functionality - only for station 1
     const downloadBtn = document.getElementById("download-btn");
     if (downloadBtn) {
         downloadBtn.addEventListener("click", function() {
-            console.log("Download button clicked");
+            console.log("Download button clicked");  
             console.log("STATION_ID:", window.STATION_ID);
             
             // Check if jsPDF is available
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 });
 
                 // Save the PDF
-                doc.save(`teller_loop_history_${new Date().toISOString().split('T')[0]}.pdf`);
+                doc.save(`teller_loop_history_${new Date().toISOString().split('T')[0]}.pdf`);  
                 console.log("PDF generated successfully");
             } catch (error) {
                 console.error("Error generating PDF:", error);

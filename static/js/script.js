@@ -75,6 +75,7 @@ function toggleScreensOnClick(buttonid) {
             hideallelements();
             shownotifications();
             console.log("ScreenLock Page");
+            window.location.href = "/"; // Redirect to the root route
             break;
     }
 
@@ -116,18 +117,14 @@ function toggleScreensOnClick(buttonid) {
       })
       .catch(error => console.error("Error fetching live tracking:", error));
   };
-  
-  
-  
-  
-  
+
   function showdispatchpage(){
     hideallelements();
-    // Only check dispatch permission and pod availability for non-station-0
+    
     if (window.STATION_ID !== 0) {
-        checkDispatchPermission();
-        checkPodAvailability();
-    }
+      checkDispatchPermission();
+      checkPodAvailability();
+  }
     dp_container.style.display = 'flex';
     setActiveNav("Dispatch");
   }
@@ -135,24 +132,23 @@ function toggleScreensOnClick(buttonid) {
   function showhistorypage(){
     hideallelements();
     if (history_container) {
-        history_container.style.display = 'block';  // Changed from 'flex' to 'block'
-        console.log("History container displayed:", history_container.style.display);
-    } else {
-        console.error("History container not found");
-    }
-    setActiveNav("History");
+      history_container.style.display = 'block';  // Changed from 'flex' to 'block'
+      console.log("History container displayed:", history_container.style.display);
+  } else {
+      console.error("History container not found");
+  }setActiveNav("History");
   }
 
   function showkeypasspage(){
     hideallelements();
     if (getActiveButton()=="Maintainance-Btn"){
-        document.getElementById("kp-left-panel-maintainance-id").style.display = 'flex';
-        keypass_container.style.display = 'flex';
-    }
+      document.getElementById("kp-left-panel-maintainance-id").style.display = 'flex';
+      keypass_container.style.display = 'flex';
+     }
     if (getActiveButton()=="ClearData-Btn"){
-        document.getElementById("kp-left-panel-cleardata-id").style.display = 'flex';
-        keypass_container.style.display = 'flex';
-    }
+      document.getElementById("kp-left-panel-cleardata-id").style.display = 'flex';
+      keypass_container.style.display = 'flex';
+     }
   }
   
   function showmaintainancepage(){

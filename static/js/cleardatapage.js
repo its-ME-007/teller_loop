@@ -21,7 +21,84 @@
                 cd_isSliding = false;
                 if (parseInt(cd_slideIcon.style.left) > 140) {
                     cd_slideIcon.style.left = "190px";
-                    alert("Data Cleared!");
+                    if (parseInt(cd_slideIcon.style.left) > 140) {
+                        cd_slideIcon.style.left = "190px";
+                        
+                            // Show popup
+                            document.getElementById("cd-popup").style.display = "flex";
+
+                            // Only one checkbox logic
+                            const checkboxes = document.querySelectorAll('input[name="cd-clear-option"]');
+                            checkboxes.forEach(cb => {
+                                cb.onclick = () => {
+                                    checkboxes.forEach(c => {
+                                        if (c !== cb) c.checked = false;
+                                    });
+                                };
+                            });
+
+                            // Cancel/Back button
+                            document.getElementById("cd-popup-cancel").onclick = () => {
+                                document.getElementById("cd-popup").style.display = "none";
+                            };
+
+                            // OK button
+                            document.getElementById("cd-popup-ok").onclick = () => {
+                                let selected = null;
+                                let selectedText = "";
+                                
+                                checkboxes.forEach(cb => {
+                                    if (cb.checked) {
+                                        selected = cb.value;
+                                        // Get the label text
+                                        selectedText = cb.parentElement.textContent.trim();
+                                    }
+                                });
+
+                                if (!selected) {
+                                    alert("Please select a time range.");
+                                    return;
+                                }
+
+                                document.getElementById("cd-popup").style.display = "none";
+                                
+                                // Show success alert with selected option
+                                let apiEndpoint = '';
+                            if (selected === '7') {
+                                apiEndpoint = '/api/clear_history_7';
+                            } else if (selected === '30') {
+                                apiEndpoint = '/api/clear_history_30';
+                            } else if (selected === 'all') {
+                                apiEndpoint = '/api/clear_history';
+                            }
+
+                            // Make API call to clear data
+                            fetch(apiEndpoint, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status === 'success') {
+                                    alert(`Data cleared of ${selectedText}`);
+                                    console.log('Clear operation successful:', data);
+                                } else {
+                                    alert(`Failed to clear data: ${data.message}`);
+                                    console.error('Clear operation failed:', data);
+                                }
+                            })
+                            .catch(error => {
+                                alert(`Error clearing data: ${error.message}`);
+                                console.error('Error:', error);
+                            });
+                            
+                        };
+                    } else {
+                        cd_slideIcon.style.left = "5px";
+                    }
+
 
                     // Reset the slider after 1 second
                     setTimeout(() => {
