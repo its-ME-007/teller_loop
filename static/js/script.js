@@ -90,7 +90,7 @@ function toggleScreensOnClick(buttonid) {
             hideallelements();
             shownotifications();
             console.log("ScreenLock Page");
-            window.location.href = "/"; // Redirect to the root route
+            window.location.href = "/${window.STATION_ID}"; // Redirect to the root route
             break;
     }
 
@@ -336,3 +336,13 @@ socket.on('notify_maintenance_exited', function(data) {
       targetBtn.classList.add('active');
     }
   }
+
+  
+  
+  
+  
+  
+  
+
+  
+  
