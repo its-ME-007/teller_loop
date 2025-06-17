@@ -126,7 +126,7 @@
     justify-content: center;
     position: absolute;
     left: 5px;
-    color: green;
+    color: rgb(0, 128, 0);
     font-weight: bold;
     transition: left 0.3s;
 }
@@ -195,6 +195,18 @@
     gap: 10px;
 }
 
+.mt-index-button-container-1 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color:  #32B34B;
+    border-radius: 34px;
+    width: 272px;
+    height: 50px;
+    padding: 0 10px;
+    gap: 10px;
+}
+
 /* Button Styles */
 .mt-side-button {
     background: none;
@@ -204,10 +216,11 @@
     cursor: pointer;
     flex: 1;
     justify-content: center;
+    transition: background-color 0.3s ease;
 }
 
-.mt-side-button span {
-    text-align: center;
+.mt-side-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .mt-end-button {
@@ -223,6 +236,11 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.mt-end-button:hover {
+    background-color: #f0f0f0;
 }
 
 /* Icon Styles */
@@ -338,54 +356,6 @@
     color: black;
 }
 
-/* Air Slider Styles */
-.mt-air-slider-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    color: white;
-    width: 542px;
-}
-
-.mt-air-percentage-box {
-    background-color: black;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 73px;
-    height: 45px;
-    border-radius: 12px;
-    margin-left: 60px;
-    border: 2px solid white;
-}
-
-input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 339px;
-    height: 2px;
-    background: white;
-    border-radius: 5px;
-    outline: none;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    background: blue;
-    border-radius: 50%;
-    cursor: pointer;
-}
-
-.mt-air-label {
-    font-size: 14px;
-    margin-left: 10px;
-    text-align: right;
-}
-
 /* Redirect Section */
 .mt-redirect-container {
     background: black;
@@ -491,4 +461,13 @@ input[type="range"]::-webkit-slider-thumb {
 .mt-indx-status-box:hover .status-tooltip, 
 .mt-status-box:hover .status-tooltip {
     display: block;
+}
+
+/* Remove air slider styles */
+.mt-air-slider-container,
+.mt-air-percentage-box,
+input[type="range"],
+input[type="range"]::-webkit-slider-thumb,
+.mt-air-label {
+    display: none;
 }

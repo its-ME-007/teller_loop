@@ -1127,11 +1127,16 @@ def maintenance_inching(station_id):
 @app.route('/api/maintenance/airdivert/<int:station_id>', methods=['POST'])
 def maintenance_air_divert(station_id):
     action = request.json.get('action')
-    # power = request.json.get('power')
     if action not in ['suck', 'blow']:
         return jsonify({"error": "Invalid request"}), 400
     mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": action}))
+    print(f"{action} performed successfully")
     return jsonify({"status": "sent", "action": action}), 200
+
+@app.route('/api/maintenance/recover/<int:station_id>', methods=['POST'])
+def maintenance_recover_pod(station_id):
+    mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": "recover"}))
+    return jsonify({"status": "sent", "action": "recover"}), 200
 
 @app.route('/api/maintenance/stop/<int:station_id>', methods=['POST'])
 def maintenance_stop(station_id):

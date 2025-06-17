@@ -125,11 +125,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     body: JSON.stringify({ direction: dir })
                 });
             } else if (label === 'suck' || label === 'blow') {
-                const power = parseInt(document.getElementById("mt-air-slider").value);
                 fetch(`/api/maintenance/airdivert/${STATION_ID}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: label, power })
+                    body: JSON.stringify({ action: label })
                 }) 
                 .then(response => response.json())
                 .then(data => {
@@ -140,7 +139,22 @@ document.addEventListener("DOMContentLoaded", function () {
                     console.error(`Failed to trigger ${label} action:`, error);
                     showNotification(`Failed to trigger ${label} action`, 'error');
                 });
-            } else if (label == 'stop') {
+            } else if (label === 'recover pod') {
+                fetch(`/api/maintenance/recover/${STATION_ID}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'recover' })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Pod recovery triggered:', data);
+                    showNotification('Pod recovery triggered', 'success');
+                })
+                .catch(error => {
+                    console.error('Failed to trigger pod recovery:', error);
+                    showNotification('Failed to trigger pod recovery', 'error');
+                });
+            } else if (label === 'stop') {
                 fetch(`/api/maintenance/stop/${STATION_ID}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
