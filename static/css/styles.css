@@ -25,6 +25,11 @@ html,body {
     overscroll-behavior: none;/* Optimized for touchscreen buttons */
 }
 
+*:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 .container {
     display: flex;
     width: 800px;

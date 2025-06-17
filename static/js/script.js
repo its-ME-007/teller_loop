@@ -287,13 +287,3 @@ socket.on('notify_maintenance_exited', function(data) {
       targetBtn.classList.add('active');
     }
   }
-
-  
-  
-  
-  
-  
-  
-
-  
-  

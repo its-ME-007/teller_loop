@@ -274,6 +274,178 @@
           }
         }
       ]
+    },
+    {
+      "id": "passthrough-station-3",
+      "type": "passthrough-station",
+      "x": 466,
+      "y": 396.5,
+      "width": 120,
+      "height": 191,
+      "priority": 0,
+      "paths": [
+        {
+          "targetComponent": {
+            "id": "passthrough-station-2",
+            "type": "passthrough-station"
+          },
+          "checkpoints": [
+            {
+              "id": "checkpoint-3",
+              "x": 592,
+              "y": 412.1000061035156,
+              "distances": {
+                "fromStart": 151.0011981355742,
+                "fromEnd": 126.9620423214345
+              }
+            },
+            {
+              "id": "checkpoint-4",
+              "x": 585.5,
+              "y": 434.6000061035156,
+              "distances": {
+                "fromStart": 173.15848842328563,
+                "fromEnd": 125.42671352263012
+              }
+            }
+          ],
+          "path": [
+            {
+              "id": "passthrough-station-3",
+              "type": "passthrough-station",
+              "priority": 0
+            },
+            {
+              "id": "passthrough-station-2",
+              "type": "passthrough-station",
+              "priority": 0
+            }
+          ],
+          "metadata": {
+            "isValid": true,
+            "priority": 0,
+            "startConnector": {
+              "position": "bottom",
+              "coordinates": {
+                "x": 643,
+                "y": 412.1000061035156
+              }
+            },
+            "endConnector": {
+              "position": "top",
+              "coordinates": {
+                "x": 528,
+                "y": 440.9000244140625
+              }
+            }
+          }
+        },
+        {
+          "targetComponent": {
+            "id": "passthrough-station-4",
+            "type": "passthrough-station"
+          },
+          "checkpoints": [
+            {
+              "id": "checkpoint-5",
+              "x": 584,
+              "y": 559.1000366210938,
+              "distances": {
+                "fromStart": 200.90488274101511,
+                "fromEnd": 35.116414027930425
+              }
+            }
+          ],
+          "path": [
+            {
+              "id": "passthrough-station-3",
+              "type": "passthrough-station",
+              "priority": 0
+            },
+            {
+              "id": "passthrough-station-4",
+              "type": "passthrough-station",
+              "priority": 0
+            }
+          ],
+          "metadata": {
+            "isValid": true,
+            "priority": 0,
+            "startConnector": {
+              "position": "bottom",
+              "coordinates": {
+                "x": 528,
+                "y": 547.1000366210938
+              }
+            },
+            "endConnector": {
+              "position": "top",
+              "coordinates": {
+                "x": 640,
+                "y": 568.9000244140625
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "passthrough-station-4",
+      "type": "passthrough-station",
+      "x": 578,
+      "y": 524.5,
+      "width": 120,
+      "height": 191,
+      "priority": 0,
+      "paths": [
+        {
+          "targetComponent": {
+            "id": "passthrough-station-3",
+            "type": "passthrough-station"
+          },
+          "checkpoints": [
+            {
+              "id": "checkpoint-5",
+              "x": 584,
+              "y": 559.1000366210938,
+              "distances": {
+                "fromStart": 200.90488274101511,
+                "fromEnd": 35.116414027930425
+              }
+            }
+          ],
+          "path": [
+            {
+              "id": "passthrough-station-4",
+              "type": "passthrough-station",
+              "priority": 0
+            },
+            {
+              "id": "passthrough-station-3",
+              "type": "passthrough-station",
+              "priority": 0
+            }
+          ],
+          "metadata": {
+            "isValid": true,
+            "priority": 0,
+            "startConnector": {
+              "position": "bottom",
+              "coordinates": {
+                "x": 528,
+                "y": 547.1000366210938
+              }
+            },
+            "endConnector": {
+              "position": "top",
+              "coordinates": {
+                "x": 640,
+                "y": 568.9000244140625
+              }
+            }
+          }
+        }
+      ]
     }
   ],
   "connections": [

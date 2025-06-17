@@ -162,6 +162,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Initialize status box interactions
     initStatusBoxInteractions();
 });
+
 function checkMaintenancePermission() {
     fetch('/api/check_dispatch_allowed')
         .then(res => res.json())

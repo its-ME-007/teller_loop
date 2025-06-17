@@ -40,16 +40,14 @@ current_dispatch = None
 # Map station names to their IDs for easier reference
 STATION_IDS = {
     'passthrough-station-1': 1,
-    'passthrough-station-2': 2,
-    #'passthrough-station-3': 3,
-    #'passthrough-station-4': 4
+    'passthrough-station-2': 2
 }
 
 # MQTT Configuration
-mqtt_broker_ip = "localhost"  # ✅ for local Mosquitto broker
+mqtt_broker_ip = "192.168.90.3"  # ✅ for local Mosquitto broker
 mqtt_broker_port = 1883
-mqtt_username = ""
-mqtt_password = ""
+mqtt_username = "oora"
+mqtt_password = "oora"
 
 # MQTT Topics
 
