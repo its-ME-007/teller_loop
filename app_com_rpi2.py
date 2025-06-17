@@ -941,112 +941,61 @@ def drop_all_tables():
         logger.error(f"Error dropping tables: {e}")
         raise
 
+# ALL history clear endpoint (also reinitializes component tables)
 @app.route('/api/clear_history', methods=['DELETE'])
 def clear_history():
     try:
-        drop_all_tables()
+        db = get_db()
         
-        init_db()
+        # Clear all history records
+        db.execute("DELETE FROM history")
+        db.commit()
         
+        # Re-initialize component tables based on JSON
         directory = os.path.dirname(__file__)
         json_files = glob.glob(os.path.join(directory, "network_architecture*.json"))
-        
+
         if not json_files:
             logger.warning("No network architecture files found")
             return jsonify({'error': 'No architecture files found'}), 404
-        
+
         latest_file = max(json_files, key=os.path.getmtime)
-        
         with open(latest_file, 'r') as json_file:
             data = json.load(json_file)
-        
-        logger.info(f"Loaded network architecture from {latest_file}")
-        logger.info(f"Loaded JSON data keys: {data.keys()}")
-        
+
         components = data.get('components', [])
-        logger.info(f"Found {len(components)} components in JSON file")
-        
-        db = get_db()
-        
+
         for component in components:
             comp_type = component.get('type')
             comp_id = component.get('id')
-            
-            logger.info(f"Processing component: type={comp_type}, id={comp_id}")
-            
-            if comp_type in ['passthrough-station', 'bottom-loading-station']:
-                if comp_id:
-                    table_name = f"component_{comp_id}"
-                    logger.info(f"Creating table for component: {table_name}")
-                    
-                    db.execute(f'''
-                        CREATE TABLE IF NOT EXISTS "{table_name}" (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            positional_sensor_1 BOOLEAN NOT NULL,
-                            positional_sensor_2 BOOLEAN NOT NULL,
-                            positional_sensor_3 BOOLEAN NOT NULL,
-                            positional_sensor_4 BOOLEAN NOT NULL,
-                            positional_sensor_5 BOOLEAN NOT NULL,
-                            positional_sensor_6 BOOLEAN NOT NULL,
-                            positional_sensor_7 BOOLEAN NOT NULL,
-                            positional_sensor_8 BOOLEAN NOT NULL
-                        )
-                    ''')
-                else:
-                    logger.warning("Skipping component due to missing id")
-            else:
-                logger.info(f"Skipping component type: {comp_type}")
-        
+
+            if comp_type in ['passthrough-station', 'bottom-loading-station'] and comp_id:
+                table_name = f"component_{comp_id}"
+                db.execute(f'''
+                    CREATE TABLE IF NOT EXISTS "{table_name}" (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        positional_sensor_1 BOOLEAN NOT NULL,
+                        positional_sensor_2 BOOLEAN NOT NULL,
+                        positional_sensor_3 BOOLEAN NOT NULL,
+                        positional_sensor_4 BOOLEAN NOT NULL,
+                        positional_sensor_5 BOOLEAN NOT NULL,
+                        positional_sensor_6 BOOLEAN NOT NULL,
+                        positional_sensor_7 BOOLEAN NOT NULL,
+                        positional_sensor_8 BOOLEAN NOT NULL
+                    )
+                ''')
+
         db.commit()
-        logger.info("Component tables creation committed")
-        
-        return jsonify({
-            'status': 'success', 
-            'message': 'History cleared and reinitialized.',
-            'components_processed': len(components)
-        }), 200
-    
-    except Exception as e:
-        logger.error(f"Error clearing history: {e}")
-        return jsonify({
-            'status': 'error', 
-            'message': f'Failed to clear history: {str(e)}'
-        }), 500
-
-
-# 60-day clear history endpoint
-@app.route('/api/clear_history_60', methods=['DELETE'])
-def clear_history_60_days():
-    """Clear history data older than 60 days"""
-    try:
-        # Calculate the cutoff date (60 days ago)
-        cutoff_date = datetime.now() - timedelta(days=60)
-        cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
-
-        db = get_db()        # Delete records older than 60 days from the sensor_data table
-        cursor = db.execute(
-            'DELETE FROM sensor_data WHERE timestamp < ?',
-            (cutoff_date_str,)
-        )
-
-        deleted_count = cursor.rowcount
-        db.commit()
-
-        logger.info(f"Cleared {deleted_count} records older than 60 days from sensor_data table")
 
         return jsonify({
             'status': 'success',
-            'message': f'Sensor data older than 60 days cleared successfully. {deleted_count} records deleted.',
-            'records_deleted': deleted_count,
-            'cutoff_date': cutoff_date.isoformat()
+            'message': 'History cleared and reinitialized.',
+            'components_processed': len(components)
         }), 200
 
     except Exception as e:
-        logger.error(f"Error clearing 60-day history: {e}")
-        return jsonify({
-            'status': 'error',
-            'message': f'Failed to clear 60-day history: {str(e)}'
-        }), 500
+        logger.error(f"Error clearing history: {e}")
+        return jsonify({'status': 'error', 'message': f'Failed to clear history: {str(e)}'}), 500
 
 
 # 30-day clear history endpoint
@@ -1054,36 +1003,56 @@ def clear_history_60_days():
 def clear_history_30_days():
     """Clear history data older than 30 days"""
     try:
-        # Calculate the cutoff date (30 days ago)
         cutoff_date = datetime.now() - timedelta(days=30)
         cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
 
         db = get_db()
-        # Delete records older than 30 days from the sensor_data table
         cursor = db.execute(
-            'DELETE FROM sensor_data WHERE timestamp < ?',
+            'DELETE FROM history WHERE timestamp < ?',
             (cutoff_date_str,)
         )
-
         deleted_count = cursor.rowcount
         db.commit()
 
-        logger.info(f"Cleared {deleted_count} records older than 30 days from sensor_data table")
-
         return jsonify({
             'status': 'success',
-            'message': f'Sensor data older than 30 days cleared successfully. {deleted_count} records deleted.',
+            'message': f'History older than 30 days cleared successfully. {deleted_count} records deleted.',
             'records_deleted': deleted_count,
             'cutoff_date': cutoff_date.isoformat()
         }), 200
 
     except Exception as e:
         logger.error(f"Error clearing 30-day history: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+# 60-day clear history endpoint
+@app.route('/api/clear_history_60', methods=['DELETE'])
+def clear_history_60_days():
+    """Clear history data older than 60 days"""
+    try:
+        cutoff_date = datetime.now() - timedelta(days=60)
+        cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
+
+        db = get_db()
+        cursor = db.execute(
+            'DELETE FROM history WHERE timestamp < ?',
+            (cutoff_date_str,)
+        )
+        deleted_count = cursor.rowcount
+        db.commit()
+
         return jsonify({
-            'status': 'error',
-            'message': f'Failed to clear 30-day history: {str(e)}'
-        }), 500
-    
+            'status': 'success',
+            'message': f'History older than 60 days cleared successfully. {deleted_count} records deleted.',
+            'records_deleted': deleted_count,
+            'cutoff_date': cutoff_date.isoformat()
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error clearing 60-day history: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @app.route('/api/get_dispatch_history')
 def get_dispatch_history():
     db = get_db()
