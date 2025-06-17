@@ -81,14 +81,17 @@
                             })
                             .then(response => response.json())
                             .then(data => {
-                                if (data.status === 'success') {
-                                    alert(`Data cleared of ${selectedText}`);
-                                    console.log('Clear operation successful:', data);
-                                } else {
-                                    alert(`Failed to clear data: ${data.message}`);
-                                    console.error('Clear operation failed:', data);
-                                }
-                            })
+                                    if (data.status === 'success') {
+                                        console.log('Clear operation successful:', data);
+                                
+                                        // ✅ Force a page reload to reflect changes in the UI
+                                        location.reload();
+                                    } else {
+                                        alert(`Failed to clear data: ${data.message}`);
+                                        console.error('Clear operation failed:', data);
+                                    }
+                                })
+
                             .catch(error => {
                                 alert(`Error clearing data: ${error.message}`);
                                 console.error('Error:', error);
