@@ -129,9 +129,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const sendEmptyPodButton = document.querySelector('.request-card .send-button');
     const requestedCard = document.querySelector('.requested-card');
     const reqPodStation = document.querySelector('.req-pod-station');
-    const abortButton = document.querySelector('.abort-button');
+   // const abortButton = document.querySelector('.abort-button');
 
-    if (abortButton) {
+    /*if (abortButton) {
       abortButton.addEventListener('click', function () {
         if (confirm('Are you sure you want to abort the current dispatch?')) {
           socket.emit('dispatch_completed', {
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
           updateDashboardUI({ system_status: false });
         }
       });
-    }
+    }*/
 
     sendEmptyPodButton.addEventListener('click', function () {
       const requestId = `${currentStation}-${Date.now()}`;
@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function () {
       console.log("Dispatch triggered by station", data.from);
       if (typeof showdashboardpage === 'function') 
         showdashboardpage();
-      const abortButton = document.querySelector('.abort-button');
+     // const abortButton = document.querySelector('.abort-button');
       
     });
 
@@ -339,7 +339,7 @@ function updateDashboardUI(data) {
 
     stopArrowBlinking();
   }
-  setTimeout(() => {
+ /* setTimeout(() => {
     const abortBtn = document.querySelector('.abort-button');
     if (!abortBtn) {
       console.warn("❌ Abort button not found");
@@ -355,7 +355,7 @@ function updateDashboardUI(data) {
     console.log("🧪 Show Abort?", isSender && isActive);
 
     abortBtn.style.display = (isSender && isActive) ? 'flex' : 'none';
-  }, 300);
+  }, 300);*/
 
 
 
