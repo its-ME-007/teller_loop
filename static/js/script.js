@@ -35,10 +35,10 @@ function toggleTrackingInfo() {
         });
     });
 
-    const abortButton = document.querySelector(".abort-button");
+    /*const abortButton = document.querySelector(".abort-button");
     abortButton.addEventListener("click", function () {
         alert("Task Aborted!");
-    });
+    });*/
 
     
 });
