@@ -1135,8 +1135,8 @@ def maintenance_air_divert(station_id):
 
 @app.route('/api/maintenance/recover/<int:station_id>', methods=['POST'])
 def maintenance_recover_pod(station_id):
-    mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": "recover"}))
-    return jsonify({"status": "sent", "action": "recover"}), 200
+    mqtt.publish(f"PTS/MTN/{station_id}", json.dumps({"action": "flush"}))
+    return jsonify({"status": "sent", "action": "flush"}), 200
 
 @app.route('/api/maintenance/stop/<int:station_id>', methods=['POST'])
 def maintenance_stop(station_id):

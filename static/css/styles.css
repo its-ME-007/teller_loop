@@ -24,6 +24,11 @@ html,body {
     touch-action: manipulation; 
     overscroll-behavior: none;/* Optimized for touchscreen buttons */
 }
+*:focus{
+    outline: none !important;
+    box-shadow:none !important;
+}
+
 
 .container {
     display: flex;

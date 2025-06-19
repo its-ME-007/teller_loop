@@ -196,20 +196,69 @@ function toggleScreensOnClick(buttonid) {
   function shownotifications(){
 
   }
+
+function showConfirmationPopup(message) {
+     const existingPopup = document.getElementById('custom-confirmation-popup');
+    if (existingPopup) {
+        document.body.removeChild(existingPopup);
+    }
+
+    const popupDiv = document.createElement('div');
+    popupDiv.style.position = 'fixed';
+    popupDiv.style.top = '50%';
+    popupDiv.style.left = '50%';
+    popupDiv.style.transform = 'translate(-50%, -50%)';
+    popupDiv.style.backgroundColor = 'white';
+    popupDiv.style.border = '2px solid #32B34B';
+    popupDiv.style.borderRadius = '10px';
+    popupDiv.style.padding = '20px';
+    popupDiv.style.zIndex = '1000';
+    popupDiv.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+    popupDiv.style.textAlign = 'center';
+
+    const messageP = document.createElement('p');
+    messageP.style.color = 'black';
+    messageP.textContent = message;
+    messageP.style.marginBottom = '15px';
+
+    const okButton = document.createElement('button');
+    okButton.textContent = 'OK';
+    okButton.style.backgroundColor = '#32B34B';
+    okButton.style.color = 'white';
+    okButton.style.border = 'none';
+    okButton.style.padding = '10px 20px';
+    okButton.style.borderRadius = '5px';
+    okButton.style.cursor = 'pointer';
+
+    okButton.setAttribute("type", "button"); // ✅ Prevents default form behavior
+
+    // ✅ Ensure event fires immediately
+    okButton.onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (popupDiv && popupDiv.parentNode) {
+            popupDiv.parentNode.removeChild(popupDiv);
+        }
+    };
+
+    popupDiv.appendChild(messageP);
+    popupDiv.appendChild(okButton);
+    document.body.appendChild(popupDiv);
+  }
   document.addEventListener("DOMContentLoaded", function () {
     const socket = io(); // Ensure socket is connected after DOM is ready
 
     let wasDisconnected = false;
   socket.on('notify_maintenance_entered', function(data) {
   if (data.station_id !== window.STATION_ID) {  //  don't alert self
-    alert(`Station ${data.station_id} has entered Maintenance Mode`);
+    showConfirmationPopup(`Station ${data.station_id} has entered Maintenance Mode`);
   }
 });
 
 
 socket.on('notify_maintenance_exited', function(data) {
   if (data.station_id !== window.STATION_ID) {  // don't alert self
-    alert(`Station ${data.station_id} has exited Maintenance Mode`);
+    showConfirmationPopup(`Station ${data.station_id} has exited Maintenance Mode`);
   }
 });
 
@@ -287,13 +336,3 @@ socket.on('notify_maintenance_exited', function(data) {
       targetBtn.classList.add('active');
     }
   }
-
-  
-  
-  
-  
-  
-  
-
-  
-  
