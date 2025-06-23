@@ -210,58 +210,62 @@ function updateDispatchUI(currentDispatch = null) {
   const priorityToggle = document.getElementById("priorityToggle");
   const destinationButtons = document.querySelectorAll(".dp-destination");
 
+  if (!slideButton || !priorityToggle) return;
+
   if (!dispatchAllowed || !podAvailable) {
     slideButton.classList.add('disabled');
-    
+
     if (!dispatchAllowed) {
-        priorityToggle.classList.add('disabled');
-        destinationButtons.forEach(btn => btn.classList.add('disabled'));
+      priorityToggle.classList.add('disabled');
+      destinationButtons.forEach(btn => btn.classList.add('disabled'));
     } else {
-        priorityToggle.classList.remove('disabled');
-        destinationButtons.forEach(btn => btn.classList.remove('disabled'));
-    }
-    //let warn = document.querySelector('.dispatch-warning');
-    //if (!warn) {
-      //warn = document.createElement('div');
-      //warn.className = 'dispatch-warning';
-      //document.querySelector('.dispatch-info')?.prepend(warn);
-    //}
-
-    if (!podAvailable) {
-      //warn.textContent = 'No pod available. Please place a pod in the station.';
-      slideButton.querySelector('span').textContent = 'Please Place Pod in the station';
-    } else {
-      //warn.textContent = 'Dispatch not available: Another dispatch is in progress';
-      slideButton.querySelector('span').textContent = 'Slide to dispatch';
+      priorityToggle.classList.remove('disabled');
+      destinationButtons.forEach(btn => btn.classList.remove('disabled'));
     }
 
-    //warn.style.color = 'red';
+    const span = slideButton.querySelector('span');
+    if (span) {
+      span.textContent = podAvailable ? 'Slide to dispatch' : 'Please Place Pod in the station';
+    }
 
   } else {
     slideButton.classList.remove('disabled');
     priorityToggle.classList.remove('disabled');
     destinationButtons.forEach(btn => btn.classList.remove('disabled'));
-    //document.querySelector('.dispatch-warning')?.remove();
-    slideButton.querySelector('span').textContent = 'Slide to dispatch';
+
+    const span = slideButton.querySelector('span');
+    if (span) {
+      span.textContent = 'Slide to dispatch';
+    }
   }
 }
 
-document.getElementById("priorityToggle").addEventListener("click", function () {
-  if (!dispatchAllowed || !podAvailable) return;
-  this.classList.toggle("active");
-  isPriorityHigh = this.classList.contains("active");
+
+document.addEventListener("DOMContentLoaded", () => {
+  const priorityToggle = document.getElementById("priorityToggle");
+  if (!priorityToggle) return;
+
+  priorityToggle.addEventListener("click", function () {
+    if (!dispatchAllowed || !podAvailable) return;
+    this.classList.toggle("active");
+    isPriorityHigh = this.classList.contains("active");
+  });
 });
 
-const dp_slideButton = document.getElementById("slideToDispatch");
-const dp_slideIcon = dp_slideButton.querySelector(".slide-icon");
-dp_slideIcon.style.left = "5px";
-dp_slideIcon.style.position = "relative";
-dp_slideIcon.style.zIndex = "5";
-dp_slideIcon.style.cursor = "grab";
 
-let dp_isSliding = false;
-dp_slideButton.addEventListener("mousedown", startSlide);
-dp_slideButton.addEventListener("touchstart", startSlide);
+document.addEventListener("DOMContentLoaded", function () {
+  const dp_slideButton = document.getElementById("slideToDispatch");
+  const dp_slideIcon = dp_slideButton?.querySelector(".slide-icon");
+  if (!dp_slideButton || !dp_slideIcon) return;
+
+  dp_slideIcon.style.left = "5px";
+  dp_slideIcon.style.position = "relative";
+  dp_slideIcon.style.zIndex = "5";
+  dp_slideIcon.style.cursor = "grab";
+
+  dp_slideButton.addEventListener("mousedown", startSlide);
+  dp_slideButton.addEventListener("touchstart", startSlide);
+});
 
 function startSlide(event) {
   if (!dispatchAllowed || !podAvailable) {
