@@ -142,6 +142,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const dp_station_number = document.getElementById("dp-to-station-number");
       const dp_showtostation = document.getElementById("dp-showtostation");
 
+      if (!destinationList || !dp_station_name || !dp_station_number || !dp_showtostation) return;
+
       filteredDest.forEach(dest => {
         const div = document.createElement("div");
         div.classList.add("dp-destination");
@@ -209,121 +211,32 @@ function updateDispatchUI(currentDispatch = null) {
   const slideButton = document.getElementById("slideToDispatch");
   const priorityToggle = document.getElementById("priorityToggle");
   const destinationButtons = document.querySelectorAll(".dp-destination");
+  if (!slideButton) return;
 
   if (!dispatchAllowed || !podAvailable) {
     slideButton.classList.add('disabled');
-    
-    if (!dispatchAllowed) {
-        priorityToggle.classList.add('disabled');
-        destinationButtons.forEach(btn => btn.classList.add('disabled'));
-    } else {
-        priorityToggle.classList.remove('disabled');
-        destinationButtons.forEach(btn => btn.classList.remove('disabled'));
-    }
-    //let warn = document.querySelector('.dispatch-warning');
-    //if (!warn) {
-      //warn = document.createElement('div');
-      //warn.className = 'dispatch-warning';
-      //document.querySelector('.dispatch-info')?.prepend(warn);
-    //}
-
+    if (priorityToggle) priorityToggle.classList.add('disabled');
+    destinationButtons.forEach(btn => btn.classList.add('disabled'));
     if (!podAvailable) {
-      //warn.textContent = 'No pod available. Please place a pod in the station.';
       slideButton.querySelector('span').textContent = 'Please Place Pod in the station';
     } else {
-      //warn.textContent = 'Dispatch not available: Another dispatch is in progress';
       slideButton.querySelector('span').textContent = 'Slide to dispatch';
     }
-
-    //warn.style.color = 'red';
-
   } else {
     slideButton.classList.remove('disabled');
-    priorityToggle.classList.remove('disabled');
+    if (priorityToggle) priorityToggle.classList.remove('disabled');
     destinationButtons.forEach(btn => btn.classList.remove('disabled'));
-    //document.querySelector('.dispatch-warning')?.remove();
     slideButton.querySelector('span').textContent = 'Slide to dispatch';
   }
 }
 
-document.getElementById("priorityToggle").addEventListener("click", function () {
-  if (!dispatchAllowed || !podAvailable) return;
-  this.classList.toggle("active");
-  isPriorityHigh = this.classList.contains("active");
-});
-
-const dp_slideButton = document.getElementById("slideToDispatch");
-const dp_slideIcon = dp_slideButton.querySelector(".slide-icon");
-dp_slideIcon.style.left = "5px";
-dp_slideIcon.style.position = "relative";
-dp_slideIcon.style.zIndex = "5";
-dp_slideIcon.style.cursor = "grab";
-
-let dp_isSliding = false;
-dp_slideButton.addEventListener("mousedown", startSlide);
-dp_slideButton.addEventListener("touchstart", startSlide);
-
-function startSlide(event) {
-  if (!dispatchAllowed || !podAvailable) {
-    return alert(podAvailable ? "Dispatch unavailable right now." : "No pod available. Please place pod first.");
-  }
-  event.preventDefault();
-  dp_isSliding = true;
-  let startX = event.clientX || event.touches[0].clientX;
-  dp_slideIcon.style.transition = "";
-  dp_slideIcon.style.cursor = "grabbing";
-
-  function moveSlide(e) {
-    if (!dp_isSliding) return;
-    const currentX = e.clientX || e.touches[0].clientX;
-    let diff = Math.min(190, Math.max(0, currentX - startX));
-    dp_slideIcon.style.left = `${5 + diff}px`;
-  }
-
-  function endSlide() {
-    dp_isSliding = false;
-    dp_slideIcon.style.cursor = "grab";
-
-    if (parseInt(dp_slideIcon.style.left || "0") > 140) {
-      dp_slideIcon.style.left = "190px";
-      if (!dispatchAllowed || !selectedDestination || !socket || !podAvailable) {
-        resetSlider();
-        return alert("Invalid dispatch state");
-      }
-
-      const priority = isPriorityHigh ? 'high' : 'low';
-      const dispatchData = {
-        from: currentStationNumber,
-        to: selectedDestination.id,
-        priority: priority
-      };
-
-      dispatchAllowed = false;
-      updateDispatchUI();
-      showNotification(`Dispatch from ${currentStationDisplay} to ${selectedDestination.displayId}`, 'success');
-      socket.emit('dispatch', dispatchData);
-
-      setTimeout(resetSlider, 1000);
-    } else {
-      resetSlider();
-    }
-
-    document.removeEventListener("mousemove", moveSlide);
-    document.removeEventListener("mouseup", endSlide);
-    document.removeEventListener("touchmove", moveSlide);
-    document.removeEventListener("touchend", endSlide);
-  }
-
-  document.addEventListener("mousemove", moveSlide);
-  document.addEventListener("mouseup", endSlide);
-  document.addEventListener("touchmove", moveSlide);
-  document.addEventListener("touchend", endSlide);
-}
-
-function resetSlider() {
-  dp_slideIcon.style.transition = "left 0.5s ease";
-  dp_slideIcon.style.left = "5px";
-  setTimeout(() => { dp_slideIcon.style.transition = ""; }, 500);
+const priorityToggle = document.getElementById("priorityToggle");
+if (priorityToggle) {
+  priorityToggle.addEventListener("click", function () {
+    if (!dispatchAllowed || !podAvailable) return;
+    this.classList.toggle("active");
+    isPriorityHigh = this.classList.contains("active");
+  });
 }
 
 function showNotification(message, type = 'info') {
