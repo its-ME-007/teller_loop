@@ -265,3 +265,75 @@ function showNotification(message, type = 'info') {
     setTimeout(() => document.body.removeChild(notification), 500);
   }, 5000);
 }
+
+// --- Slide to Dispatch Logic (matching maintenance slider) ---
+let dp_isSliding = false;
+const dp_slideBtn = document.getElementById("slideToDispatch");
+const dp_slideIcon = dp_slideBtn ? dp_slideBtn.querySelector(".slide-icon") : null;
+if (dp_slideIcon) {
+  dp_slideIcon.style.left = "5px";
+  dp_slideIcon.style.position = "relative";
+  dp_slideIcon.style.zIndex = "5";
+  dp_slideIcon.style.cursor = "grab";
+}
+
+function resetDispatchSlider() {
+  if (!dp_slideIcon) return;
+  dp_slideIcon.style.transition = "left 0.5s ease";
+  dp_slideIcon.style.left = "5px";
+  setTimeout(() => { dp_slideIcon.style.transition = ""; }, 500);
+}
+
+function triggerDispatchAction() {
+  if (!selectedDestination) {
+    showNotification("Please select a destination station first!", "error");
+    resetDispatchSlider();
+    return;
+  }
+  // Show a notification with the source and destination
+  showNotification(`Dispatch triggered: From ${currentStationDisplay} to ${selectedDestination.displayId}`, "success");
+  dp_slideBtn.classList.add("disabled");
+  resetDispatchSlider();
+}
+
+function startDispatchSlide(event) {
+  if (!dp_slideBtn || !dp_slideIcon) return;
+  if (dp_slideBtn.classList.contains("disabled")) return;
+  event.preventDefault();
+  dp_isSliding = true;
+  let startX = event.clientX || (event.touches && event.touches[0].clientX);
+  dp_slideIcon.style.transition = "";
+  dp_slideIcon.style.cursor = "grabbing";
+
+  function moveDispatchSlide(e) {
+    if (!dp_isSliding) return;
+    const currentX = e.clientX || (e.touches && e.touches[0].clientX);
+    let diff = Math.min(190, Math.max(0, currentX - startX));
+    dp_slideIcon.style.left = `${5 + diff}px`;
+  }
+
+  function endDispatchSlide() {
+    dp_isSliding = false;
+    dp_slideIcon.style.cursor = "grab";
+    if (parseInt(dp_slideIcon.style.left || "0") > 140) {
+      dp_slideIcon.style.left = "190px";
+      triggerDispatchAction();
+    } else {
+      resetDispatchSlider();
+    }
+    document.removeEventListener("mousemove", moveDispatchSlide);
+    document.removeEventListener("mouseup", endDispatchSlide);
+    document.removeEventListener("touchmove", moveDispatchSlide);
+    document.removeEventListener("touchend", endDispatchSlide);
+  }
+
+  document.addEventListener("mousemove", moveDispatchSlide);
+  document.addEventListener("mouseup", endDispatchSlide);
+  document.addEventListener("touchmove", moveDispatchSlide);
+  document.addEventListener("touchend", endDispatchSlide);
+}
+
+if (dp_slideBtn && dp_slideIcon) {
+  dp_slideBtn.addEventListener("mousedown", startDispatchSlide);
+  dp_slideBtn.addEventListener("touchstart", startDispatchSlide);
+}
